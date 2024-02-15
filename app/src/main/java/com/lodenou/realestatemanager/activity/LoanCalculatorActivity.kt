@@ -3,16 +3,15 @@ package com.lodenou.realestatemanager.activity
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -65,7 +65,7 @@ fun LoanCalculator(viewModel: LoanCalculatorViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
         LoanTermSlider(viewModel)
         Spacer(modifier = Modifier.height(16.dp))
-        CalculateButton(viewModel, context)
+        ValidateButton(viewModel, context)
         DisplayLoanCalculationResult(viewModel)
     }
 }
@@ -75,16 +75,23 @@ fun LoanTitleWithBackButton() {
     val activity = LocalContext.current as Activity
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+
     ) {
-        IconButton(onClick = { activity.finish()}) {
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Retour")
+        IconButton(onClick = { activity.finish() },
+            colors =  IconButtonDefaults.iconButtonColors(
+                contentColor = Color.White)
+            ) {
+            Icon(Icons.Filled.ArrowBack,
+                contentDescription = "Retour",
+                 )
+
         }
         Text(
             text = "Simulateur de prêt",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
+            modifier = Modifier.padding(start = 52.dp),
+            textAlign = TextAlign.Start
         )
     }
 }
@@ -99,7 +106,8 @@ fun LoanAmountInput(viewModel: LoanCalculatorViewModel, context: Context) {
         label = { Text("Montant du prêt") },
         placeholder = { Text("Entrez le montant") },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -125,14 +133,16 @@ private fun handleAmountInput(
 @Composable
 fun InterestRateSlider(viewModel: LoanCalculatorViewModel) {
     SliderWithValueFloat(
-        label = "Taux d'intérêt : ${"%.2f".format(viewModel.mortgageRate.doubleValue * 100)}%",
+        label = "Taux d'intérêt : ${"%.1f".format(viewModel.mortgageRate.doubleValue * 100)}%",
         sliderValue = viewModel.mortgageRate.doubleValue.toFloat() * 100,
         onSliderValueChange = { newValue ->
             viewModel.mortgageRate.doubleValue = newValue.toDouble() / 100
         },
-        range = 0f..15f
+        range = 0f..15f,
     )
 }
+
+
 
 @Composable
 fun LoanTermSlider(viewModel: LoanCalculatorViewModel) {
@@ -149,7 +159,7 @@ fun LoanTermSlider(viewModel: LoanCalculatorViewModel) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun CalculateButton(viewModel: LoanCalculatorViewModel, context: Context) {
+fun ValidateButton(viewModel: LoanCalculatorViewModel, context: Context) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Button(
         onClick = {
@@ -158,13 +168,14 @@ fun CalculateButton(viewModel: LoanCalculatorViewModel, context: Context) {
         },
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Valider")
+        Text("Valider",
+            color = Color.Black)
     }
 }
 
 private fun validateAndCalculateLoan(viewModel: LoanCalculatorViewModel, context: Context) {
     val amount = viewModel.amount.value.toDoubleOrNull() ?: 0.0
-    val rate = viewModel.mortgageRate.doubleValue / 100
+    val rate = viewModel.mortgageRate.doubleValue
     val termYears = viewModel.term.intValue
 
 
@@ -221,14 +232,16 @@ fun SliderWithValueInt(
 
 
 fun calculateMonthlyPayment(amount: Double, annualRate: Double, termYears: Int): Double {
-    val monthlyInterestRate = annualRate / 12 / 100
+    val monthlyInterestRate = annualRate / 12
     val loanTermMonths = termYears * 12
 
     return if (monthlyInterestRate > 0) {
+
         val monthlyPayment =
             amount * (monthlyInterestRate * (1 + monthlyInterestRate).pow(loanTermMonths)) /
                     ((1 + monthlyInterestRate).pow(loanTermMonths) - 1)
         monthlyPayment
+
     } else {
         amount / loanTermMonths
     }
@@ -237,9 +250,18 @@ fun calculateMonthlyPayment(amount: Double, annualRate: Double, termYears: Int):
 @Composable
 fun DisplayResult(result: Float?) {
     Column {
-        Spacer(modifier = Modifier.height(40.dp))
+//        Spacer(modifier = Modifier.height(10.dp))
         if (result != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//            Box(modifier = Modifier.fillMaxSize(),
+//                contentAlignment = Alignment.Center
+//            )
+            Spacer(modifier = Modifier.height(26.dp))
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.Center
+                )
+            {
                 Text(
                     text = "" + result + "€ de mensualités à payer", textAlign = TextAlign.Center,
                     modifier = Modifier.width(150.dp)
