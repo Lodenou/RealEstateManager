@@ -59,20 +59,22 @@ class LoanCalculatorActivity : ComponentActivity() {
 fun LoanCalculator(viewModel: LoanCalculatorViewModel) {
     val context = LocalContext.current
 
-        Column(modifier = Modifier
+    Column(
+        modifier = Modifier
             .padding(16.dp)
-            .verticalScroll(rememberScrollState())) {
-            LoanTitleWithBackButton()
-            Spacer(modifier = Modifier.height(16.dp))
-            LoanAmountInput(viewModel, context)
-            Spacer(modifier = Modifier.height(16.dp))
-            InterestRateSlider(viewModel)
-            Spacer(modifier = Modifier.height(16.dp))
-            LoanTermSlider(viewModel)
-            Spacer(modifier = Modifier.height(16.dp))
-            ValidateButton(viewModel, context)
-            DisplayLoanCalculationResult(viewModel)
-        }
+            .verticalScroll(rememberScrollState())
+    ) {
+        LoanTitleWithBackButton()
+        Spacer(modifier = Modifier.height(16.dp))
+        LoanAmountInput(viewModel, context)
+        Spacer(modifier = Modifier.height(16.dp))
+        InterestRateSlider(viewModel)
+        Spacer(modifier = Modifier.height(16.dp))
+        LoanTermSlider(viewModel)
+        Spacer(modifier = Modifier.height(16.dp))
+        ValidateButton(viewModel, context)
+        DisplayLoanCalculationResult(viewModel)
+    }
 }
 
 @Composable
@@ -82,14 +84,17 @@ fun LoanTitleWithBackButton() {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth(),
 
-    ) {
-        IconButton(onClick = { activity.finish() },
-            colors =  IconButtonDefaults.iconButtonColors(
-                contentColor = Color.White)
-            ) {
-            Icon(Icons.Filled.ArrowBack,
+        ) {
+        IconButton(
+            onClick = { activity.finish() },
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = Color.White
+            )
+        ) {
+            Icon(
+                Icons.Filled.ArrowBack,
                 contentDescription = "Retour",
-                 )
+            )
 
         }
         Text(
@@ -148,7 +153,6 @@ fun InterestRateSlider(viewModel: LoanCalculatorViewModel) {
 }
 
 
-
 @Composable
 fun LoanTermSlider(viewModel: LoanCalculatorViewModel) {
     SliderWithValueInt(
@@ -173,8 +177,10 @@ fun ValidateButton(viewModel: LoanCalculatorViewModel, context: Context) {
         },
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Valider",
-            color = Color.Black)
+        Text(
+            "Valider",
+            color = Color.Black
+        )
     }
 }
 
@@ -261,11 +267,12 @@ fun DisplayResult(result: Float?) {
 //                contentAlignment = Alignment.Center
 //            )
             Spacer(modifier = Modifier.height(26.dp))
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally),
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally),
                 horizontalArrangement = Arrangement.Center
-                )
+            )
             {
                 Text(
                     text = "" + result + "€ de mensualités à payer", textAlign = TextAlign.Center,
