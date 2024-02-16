@@ -3,7 +3,6 @@ package com.lodenou.realestatemanager.activity
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,7 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -56,18 +58,21 @@ class LoanCalculatorActivity : ComponentActivity() {
 @Composable
 fun LoanCalculator(viewModel: LoanCalculatorViewModel) {
     val context = LocalContext.current
-    Column(modifier = Modifier.padding(16.dp)) {
-        LoanTitleWithBackButton()
-        Spacer(modifier = Modifier.height(16.dp))
-        LoanAmountInput(viewModel, context)
-        Spacer(modifier = Modifier.height(16.dp))
-        InterestRateSlider(viewModel)
-        Spacer(modifier = Modifier.height(16.dp))
-        LoanTermSlider(viewModel)
-        Spacer(modifier = Modifier.height(16.dp))
-        ValidateButton(viewModel, context)
-        DisplayLoanCalculationResult(viewModel)
-    }
+
+        Column(modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())) {
+            LoanTitleWithBackButton()
+            Spacer(modifier = Modifier.height(16.dp))
+            LoanAmountInput(viewModel, context)
+            Spacer(modifier = Modifier.height(16.dp))
+            InterestRateSlider(viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+            LoanTermSlider(viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+            ValidateButton(viewModel, context)
+            DisplayLoanCalculationResult(viewModel)
+        }
 }
 
 @Composable
