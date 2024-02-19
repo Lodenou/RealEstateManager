@@ -1,140 +1,34 @@
 package com.lodenou.realestatemanager.data.repository
 
-import com.lodenou.realestatemanager.data.model.ImageWithDescription
+import androidx.annotation.WorkerThread
+import com.lodenou.realestatemanager.data.RealEstateDao
 import com.lodenou.realestatemanager.data.model.RealEstate
-import com.lodenou.realestatemanager.data.model.Status
-import java.util.Date
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class RealEstateRepository {
-    fun getRealEstates(): List<RealEstate> {
-        return listOf(
-            RealEstate(
-                type = "Appartement",
-                price = 250000.0,
-                area = 70.0,
-                numberOfRooms = 3,
-                description = "Un bel appartement lumineux et spacieux.",
-                images = listOf(ImageWithDescription("url1", "Vue du salon")),
-                address = "123 rue Exemple",
-                pointsOfInterest = listOf("École", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent A"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
-            RealEstate(
-                type = "Maison",
-                price = 480000.0,
-                area = 150.0,
-                numberOfRooms = 5,
-                description = "Maison avec jardin dans un quartier calme.",
-                images = listOf(ImageWithDescription("url2", "Jardin arrière")),
-                address = "456 avenue Exemplaire",
-                pointsOfInterest = listOf("Centre commercial", "Parc"),
-                status = Status.AVAILABLE,
-                marketEntryDate = Date(),
-                saleDate = null,
-                realEstateAgent = "Agent B"
-            ),
+class RealEstateRepository @Inject constructor(private val realEstateDao: RealEstateDao) {
 
-        )
+    // ROOM
+    // Flow of all real estate properties. Unsorted
+    val allRealEstates: Flow<List<RealEstate>> = realEstateDao.getAllRealEstates()
+
+
+    @WorkerThread
+    suspend fun insert(realEstate: RealEstate) {
+        realEstateDao.insert(realEstate)
+    }
+
+    @WorkerThread
+    suspend fun update(realEstate: RealEstate) {
+        realEstateDao.update(realEstate)
+    }
+
+    @WorkerThread
+    suspend fun delete(realEstate: RealEstate) {
+        realEstateDao.delete(realEstate)
+    }
+
+    fun getRealEstateById(id: Int): Flow<RealEstate> {
+        return realEstateDao.getRealEstateById(id)
     }
 }
