@@ -260,11 +260,7 @@ fun calculateMonthlyPayment(amount: Double, annualRate: Double, termYears: Int):
 @Composable
 fun DisplayResult(result: Float?) {
     Column {
-//        Spacer(modifier = Modifier.height(10.dp))
         if (result != null) {
-//            Box(modifier = Modifier.fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            )
             Spacer(modifier = Modifier.height(26.dp))
             Row(
                 modifier = Modifier

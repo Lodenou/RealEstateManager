@@ -3,7 +3,10 @@ package com.lodenou.realestatemanager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Build
+import com.google.firebase.Timestamp
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,5 +33,17 @@ object Utils {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false
+    }
+
+    // Add after
+
+    fun LocalDate.toFirestoreTimestamp(): Timestamp {
+        val date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
+        return com.google.firebase.Timestamp(date)
+    }
+
+    // Extension function pour convertir un Timestamp de Firestore en LocalDate
+    fun Timestamp.toLocalDate(): LocalDate {
+        return this.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     }
 }

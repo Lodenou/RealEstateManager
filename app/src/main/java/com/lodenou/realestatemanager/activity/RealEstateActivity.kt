@@ -1,18 +1,23 @@
 package com.lodenou.realestatemanager.activity
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.widget.DatePicker
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -45,7 +49,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
-import androidx.compose.material3.ButtonDefaults.shape
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -54,33 +57,44 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.core.content.pm.ShortcutInfoCompat.Surface
+import androidx.core.content.ContextCompat
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+import android.Manifest
+import android.app.Activity
+import android.os.Environment
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.core.content.FileProvider
+import coil.compose.rememberImagePainter
+import com.lodenou.realestatemanager.R
+import com.lodenou.realestatemanager.Utils.toFirestoreTimestamp
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
@@ -88,11 +102,13 @@ import com.maxkeppeler.sheets.calendar.models.CalendarSelection
 import com.maxkeppeler.sheets.calendar.models.CalendarStyle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
+import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 @AndroidEntryPoint
 class RealEstateActivity : ComponentActivity() {
@@ -151,7 +167,12 @@ class RealEstateActivity : ComponentActivity() {
                         ) {
 
 
-                            val realEstates by viewModel.allRealEstates.observeAsState(initial = emptyList())
+                           //TODO IF INTERNET METHODE GETALLREALESTATE DE FIRESTORE SINON UTILISER  .allRealEstates DE ROOM
+//                            val realEstatesRoom by viewModel.allRealEstates.observeAsState(initial = emptyList()) // room
+//                            RealEstateListScreen(realEstates = realEstatesRoom)
+
+//                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(initial = emptyList())
+                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(emptyList())
                             RealEstateListScreen(realEstates = realEstates)
                         }
                     }
@@ -159,10 +180,6 @@ class RealEstateActivity : ComponentActivity() {
             }
         }
     }
-
-//    private val realestateViewModel: RealEstateViewModel by viewModels {
-//        RealEstateViewModelFactory((application as WordsApplication).repository)
-//    }
 
     @Composable
     fun RealEstateListScreen(realEstates: List<RealEstate>?) {
@@ -181,10 +198,42 @@ class RealEstateActivity : ComponentActivity() {
     @Composable
     fun RealEstateItem(realEstate: RealEstate) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Type: ${realEstate.type}")
-            Text(text = "Prix: ${realEstate.price}")
-            Text(text = "Image: ${realEstate.images?.get(0)}")
-            Text(text = "Adresse: ${realEstate.address}")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (!realEstate.images.isNullOrEmpty()) {
+                    // Displaying the image with Coil
+                    Image(
+                        painter = rememberImagePainter(
+                            data = realEstate.images.first().imageUrl,
+                            builder = {
+                                error(R.drawable.ic_launcher_foreground) // Your error image
+                                placeholder(R.drawable.ic_launcher_background) // Loading image
+                            }
+                        ),
+                        contentDescription = "Real Estate Image",
+                        modifier = Modifier
+                            .size(100.dp) // Adjust the image size according to your needs
+                            .clip(RoundedCornerShape(8.dp)) // Rounds the corners of the image
+                    )
+                } else {
+                    // Using Icon to display an icon when no image is available
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = "No image",
+                        modifier = Modifier.size(100.dp) // Ensure the icon size matches the images for uniform layout
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp)) // Space between the image/icon and text
+
+                // Real estate details to the right of the image
+                Column {
+                    Text(text = "Type: ${realEstate.type}")
+                    Text(text = "Price: ${realEstate.price}")
+                    Text(text = "Address: ${realEstate.address}")
+                }
+            }
         }
     }
 
@@ -217,6 +266,9 @@ class RealEstateActivity : ComponentActivity() {
     @Composable
     fun CustomAlertDialog(onDismiss: () -> Unit) {
 
+        val context = LocalContext.current
+        val realEstateViewModel: RealEstateViewModel by viewModels()
+
         var type by remember { mutableStateOf("") }
         val types = listOf("Maison", "Appartement", "Loft")
         var price by remember { mutableStateOf("") }
@@ -237,28 +289,28 @@ class RealEstateActivity : ComponentActivity() {
         var marketEntryDate by remember { mutableStateOf(LocalDate.now()) }
         var saleDate by remember { mutableStateOf<LocalDate?>(null) }
 
-        var realEstateAgent by remember { mutableStateOf("") }
-        // Pour gérer l'affichage des menus déroulants et date pickers
+        var realEstateAgentName by remember { mutableStateOf("") }
 
 
         val isFormValid =
             type.isNotEmpty() && price.isNotEmpty() && area.isNotEmpty() && numberOfRooms.isNotEmpty() &&
                     description.isNotEmpty() && address.isNotEmpty() && status.isNotEmpty() &&
-                    marketEntryDate != null && realEstateAgent.isNotEmpty()
+                    marketEntryDate != null && realEstateAgentName.isNotEmpty()
 
         AlertDialog(
             onDismissRequest = { },
             title = { Text(text = "Détails du bien immobilier") },
             text = {
-                // Initialisation de l'état de défilement
                 val scrollState = rememberScrollState()
-
-                // Application du défilement vertical
                 Column(
                     modifier = Modifier
                         .verticalScroll(scrollState)
                         .padding(6.dp) // Ajoutez du padding selon vos préférences
                 ) {
+
+
+                    ImagePickerWithDescription(viewModel = realEstateViewModel)
+
                     CustomDropdownMenu(
                         options = types,
                         selectedOption = type,
@@ -342,15 +394,16 @@ class RealEstateActivity : ComponentActivity() {
                     CustomDatePicker(
                         value = saleDate,
                         onValueChange = { newDate ->
-                            saleDate = newDate // Mise à jour de saleDate avec la nouvelle date ou null pour réinitialiser
+                            saleDate =
+                                newDate // Mise à jour de saleDate avec la nouvelle date ou null pour réinitialiser
                         },
                         label = "Date de vente",
                         defaultText = "Pas encore vendu"
                     )
 
                     OutlinedTextField(
-                        value = realEstateAgent,
-                        onValueChange = { realEstateAgent = it },
+                        value = realEstateAgentName,
+                        onValueChange = { realEstateAgentName = it },
                         label = { Text("Agent immobilier") },
                         shape = RoundedCornerShape(30.dp)
                     )
@@ -358,7 +411,33 @@ class RealEstateActivity : ComponentActivity() {
                 }
             },
             confirmButton = {
-                Button(onClick = { onDismiss() }) {
+                Button(onClick = {
+                    if (isFormValid) {
+                        val realEstate = RealEstate(
+                            // Id autogen
+                            type = type,
+                            price = price.toDoubleOrNull(),
+                            area = area.toDoubleOrNull(),
+                            numberOfRooms = numberOfRooms.toIntOrNull(),
+                            description = description,
+                            images = realEstateViewModel.imagesWithDescriptions, // vm list used here
+                            address = address,
+                            pointsOfInterest = pointsOfInterest,
+                            status = status,
+                            marketEntryDate = marketEntryDate,
+                            saleDate = saleDate,
+                            realEstateAgent = realEstateAgentName
+                        )
+
+                        // Save Object to Firestore
+                        realEstateViewModel.saveRealEstateWithImages(realEstate)
+
+
+                        onDismiss()
+                    } else {
+                        Toast.makeText(context, "Veuillez remplir tous les champs requis.", Toast.LENGTH_SHORT).show()
+                    }
+                }) {
                     Text("Confirmer", color = Color.Black)
                 }
             },
@@ -411,7 +490,7 @@ class RealEstateActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun CustomDatePicker(
-        value: LocalDate?, // Accepte maintenant une valeur nullable
+        value: LocalDate?,
         onValueChange: (LocalDate?) -> Unit,
         label: String,
         defaultText: String
@@ -419,7 +498,8 @@ class RealEstateActivity : ComponentActivity() {
         val open = remember { mutableStateOf(false) }
 
         if (open.value) {
-            val initialDate = value ?: LocalDate.now() // Utilisez la valeur actuelle ou aujourd'hui si null
+            val initialDate =
+                value ?: LocalDate.now()
             CalendarDialog(
                 state = rememberUseCaseState(
                     visible = true,
@@ -436,11 +516,11 @@ class RealEstateActivity : ComponentActivity() {
             )
         }
 
-        val displayText = value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))  ?: defaultText
+        val displayText = value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: defaultText
         OutlinedTextField(
             modifier = Modifier.clickable { open.value = true },
             enabled = false,
-            value = displayText, // Affiche une chaîne vide si value est null
+            value = displayText,
             onValueChange = {},
             label = { Text(label) },
             shape = RoundedCornerShape(30.dp),
@@ -464,6 +544,162 @@ class RealEstateActivity : ComponentActivity() {
         )
     }
 
+    // Image part
+
+    @Composable
+    fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
+        val context = LocalContext.current
+        var imageUri by remember { mutableStateOf<Uri?>(null) }
+        var showDescriptionDialog by remember { mutableStateOf(false) }
+        var imageDescription by remember { mutableStateOf("") }
+        val activity = (LocalContext.current as? Activity)
+        var showSourceDialog by remember { mutableStateOf(false) }
+
+        // Création d'une Uri pour stocker l'image prise par la caméra
+        val photoUri = remember {
+            mutableStateOf<Uri?>(null)
+        }
+
+        // Préparer le launcher pour prendre une photo
+        val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                photoUri.value?.let { uri ->
+                    imageUri = uri
+                    showDescriptionDialog = true
+                }
+            }
+        }
+
+        // Préparer le launcher pour sélectionner une image
+        val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                imageUri = it
+                showDescriptionDialog = true
+            }
+        }
+
+        // Demander la permission d'accès à la caméra
+        val requestPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                // Créer une Uri temporaire pour l'image
+                photoUri.value = FileProvider.getUriForFile(context, "${context.packageName}.provider", createImageFile(context))
+                takePictureLauncher.launch(photoUri.value)
+            } else {
+                Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Sélectionner la source de l'image
+        fun showImageSourceDialog() {
+            showSourceDialog = true
+        }
+
+        if (showSourceDialog) {
+            AlertDialog(
+                onDismissRequest = { showSourceDialog = false },
+                title = { Text("Sélectionner la source de l'image") },
+                text = {
+                    Column {
+                        Button(onClick = {
+                            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            showSourceDialog = false
+                        }) {
+                            Text("Prendre une photo")
+                        }
+                        Button(onClick = {
+                            pickImageLauncher.launch("image/*")
+                            showSourceDialog = false
+                        }) {
+                            Text("Choisir depuis la galerie")
+                        }
+                    }
+                },
+                confirmButton = {}
+            )
+        }
+
+        // Utilisez `showImageSourceDialog()` pour afficher les options
+        Button(onClick = { showImageSourceDialog() }) {
+            Text("Choisir une image")
+        }
+
+        // Dialog pour entrer la description de l'image
+        if (showDescriptionDialog) {
+            DescriptionDialog(imageUri, imageDescription) { desc ->
+                imageDescription = desc
+                if (imageUri != null && imageDescription.isNotEmpty()) {
+                    viewModel.addImageWithDescription(imageUri!!, imageDescription)
+                    imageUri = null
+                    imageDescription = ""
+                }
+                showDescriptionDialog = false
+            }
+        }
+        DisplaySelectedImages(viewModel)
+    }
+
+    @Composable
+    fun DescriptionDialog(
+        imageUri: Uri?,
+        initialDescription: String,
+        onConfirm: (String) -> Unit
+    ) {
+        var description by rememberSaveable { mutableStateOf(initialDescription) }
+
+        if (imageUri != null) {
+            AlertDialog(
+                onDismissRequest = {
+                },
+                title = { Text("Description de l'image") },
+                text = {
+                    TextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Entrez une description") }
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = { onConfirm(description) }) {
+                        Text("Confirmer")
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
+        Column(
+        ) {
+            viewModel.imagesWithDescriptions.forEach { imageWithDescription ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = rememberImagePainter(imageWithDescription.imageUrl),
+                        contentDescription = "Selected Image",
+                        modifier = Modifier.size(100.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(imageWithDescription.description)
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(onClick = { viewModel.removeImageWithDescription(imageWithDescription) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun createImageFile(context: Context): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        ).apply {
+
+        }
+    }
 }
 
 
