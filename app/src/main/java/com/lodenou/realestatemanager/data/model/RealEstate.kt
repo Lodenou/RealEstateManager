@@ -1,6 +1,7 @@
 package com.lodenou.realestatemanager.data.model
 
 
+import androidx.annotation.NonNull
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDate
@@ -8,7 +9,7 @@ import java.util.Date
 
 @Entity(tableName = "real_estate_table")
 data class RealEstate(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    @PrimaryKey val id: String = "",
     val type: String? = null,
     val price: Double? = null,
     val area: Double? = null,

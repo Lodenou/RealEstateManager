@@ -59,8 +59,8 @@ class RealEstateViewModel @Inject constructor(private val repository: RealEstate
     /**
      * Retrieves a real estate property by its ID.
      */
-    fun getRealEstateById(id: Int): LiveData<RealEstate> {
-        return repository.getRealEstateById(id).asLiveData()
+    fun getRealEstateById(id: String): LiveData<RealEstate> {
+        return repository.getRealEstateByIdRoom(id).asLiveData()
     }
 
 
@@ -111,7 +111,7 @@ class RealEstateViewModel @Inject constructor(private val repository: RealEstate
             val realEstateList = ArrayList<RealEstate>()
             snapshots?.documents?.forEach { document ->
                 // Manual treatment to avoid convert pb
-                val id = document.id.toLongOrNull() ?: 0L
+                val id = document.id
                 val type = document.getString("type")
                 val price = document.getDouble("price")
                 val area = document.getDouble("area")

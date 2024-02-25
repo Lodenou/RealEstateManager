@@ -84,7 +84,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -167,12 +170,14 @@ class RealEstateActivity : ComponentActivity() {
                         ) {
 
 
-                           //TODO IF INTERNET METHODE GETALLREALESTATE DE FIRESTORE SINON UTILISER  .allRealEstates DE ROOM
+                            //TODO IF INTERNET METHODE GETALLREALESTATE DE FIRESTORE SINON UTILISER  .allRealEstates DE ROOM
 //                            val realEstatesRoom by viewModel.allRealEstates.observeAsState(initial = emptyList()) // room
 //                            RealEstateListScreen(realEstates = realEstatesRoom)
 
 //                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(initial = emptyList())
-                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(emptyList())
+                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(
+                                emptyList()
+                            )
                             RealEstateListScreen(realEstates = realEstates)
                         }
                     }
@@ -196,8 +201,14 @@ class RealEstateActivity : ComponentActivity() {
 
 
     @Composable
-    fun RealEstateItem(realEstate: RealEstate) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    fun RealEstateItem(realEstate: RealEstate, context: Context = LocalContext.current) {
+        Column(modifier = Modifier
+                .padding(16.dp)
+            .clickable { // Intent pour lancer DetailActivity
+                val intent = Intent(context, DetailActivity::class.java).apply {
+                    putExtra("realEstateId", realEstate.id)
+                }
+                context.startActivity(intent) }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -414,7 +425,7 @@ class RealEstateActivity : ComponentActivity() {
                 Button(onClick = {
                     if (isFormValid) {
                         val realEstate = RealEstate(
-                            // Id autogen
+
                             type = type,
                             price = price.toDoubleOrNull(),
                             area = area.toDoubleOrNull(),
@@ -429,13 +440,18 @@ class RealEstateActivity : ComponentActivity() {
                             realEstateAgent = realEstateAgentName
                         )
 
+                        //TODO SAVE TO ROOM
+
                         // Save Object to Firestore
                         realEstateViewModel.saveRealEstateWithImages(realEstate)
 
-
                         onDismiss()
                     } else {
-                        Toast.makeText(context, "Veuillez remplir tous les champs requis.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Veuillez remplir tous les champs requis.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }) {
                     Text("Confirmer", color = Color.Black)
@@ -552,7 +568,6 @@ class RealEstateActivity : ComponentActivity() {
         var imageUri by remember { mutableStateOf<Uri?>(null) }
         var showDescriptionDialog by remember { mutableStateOf(false) }
         var imageDescription by remember { mutableStateOf("") }
-        val activity = (LocalContext.current as? Activity)
         var showSourceDialog by remember { mutableStateOf(false) }
 
         // Création d'une Uri pour stocker l'image prise par la caméra
@@ -561,33 +576,40 @@ class RealEstateActivity : ComponentActivity() {
         }
 
         // Préparer le launcher pour prendre une photo
-        val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                photoUri.value?.let { uri ->
-                    imageUri = uri
+        val takePictureLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+                if (success) {
+                    photoUri.value?.let { uri ->
+                        imageUri = uri
+                        showDescriptionDialog = true
+                    }
+                }
+            }
+
+        // Préparer le launcher pour sélectionner une image
+        val pickImageLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                uri?.let {
+                    imageUri = it
                     showDescriptionDialog = true
                 }
             }
-        }
-
-        // Préparer le launcher pour sélectionner une image
-        val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
-                imageUri = it
-                showDescriptionDialog = true
-            }
-        }
 
         // Demander la permission d'accès à la caméra
-        val requestPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                // Créer une Uri temporaire pour l'image
-                photoUri.value = FileProvider.getUriForFile(context, "${context.packageName}.provider", createImageFile(context))
-                takePictureLauncher.launch(photoUri.value)
-            } else {
-                Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        val requestPermissionLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+                if (isGranted) {
+                    // Créer une Uri temporaire pour l'image
+                    photoUri.value = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        createImageFile(context)
+                    )
+                    takePictureLauncher.launch(photoUri.value)
+                } else {
+                    Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
 
         // Sélectionner la source de l'image
         fun showImageSourceDialog() {
@@ -600,28 +622,30 @@ class RealEstateActivity : ComponentActivity() {
                 title = { Text("Sélectionner la source de l'image") },
                 text = {
                     Column {
-                        Button(onClick = {
-                            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-                            showSourceDialog = false
-                        }) {
-                            Text("Prendre une photo")
-                        }
-                        Button(onClick = {
-                            pickImageLauncher.launch("image/*")
-                            showSourceDialog = false
-                        }) {
-                            Text("Choisir depuis la galerie")
-                        }
+                        CustomButton(
+                            text = "Prendre une photo",
+                            onClick = {
+                                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                showSourceDialog = false
+                            }
+                        )
+                        CustomButton(
+                            text = "Choisir depuis la galerie",
+                            onClick = {
+                                pickImageLauncher.launch("image/*")
+                                showSourceDialog = false
+                            }
+                        )
                     }
                 },
                 confirmButton = {}
             )
         }
 
-        // Utilisez `showImageSourceDialog()` pour afficher les options
-        Button(onClick = { showImageSourceDialog() }) {
-            Text("Choisir une image")
-        }
+        CustomButton(
+            text = "choisir une image",
+            onClick = { showImageSourceDialog() }
+        )
 
         // Dialog pour entrer la description de l'image
         if (showDescriptionDialog) {
@@ -636,6 +660,16 @@ class RealEstateActivity : ComponentActivity() {
             }
         }
         DisplaySelectedImages(viewModel)
+    }
+
+    @Composable
+    fun CustomButton(text: String, onClick: () -> Unit) {
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(contentColor = Color.Black)
+        ) {
+            Text(text, color = Color.Black)
+        }
     }
 
     @Composable
@@ -690,7 +724,8 @@ class RealEstateActivity : ComponentActivity() {
     }
 
     private fun createImageFile(context: Context): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
         return File.createTempFile(
             "JPEG_${timeStamp}_", /* prefix */

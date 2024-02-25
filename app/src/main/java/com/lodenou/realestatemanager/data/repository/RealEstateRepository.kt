@@ -2,11 +2,17 @@ package com.lodenou.realestatemanager.data.repository
 
 import android.net.Uri
 import androidx.annotation.WorkerThread
+import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.lodenou.realestatemanager.BuildConfig
+import com.lodenou.realestatemanager.GeocodeResult
 import com.lodenou.realestatemanager.Utils.toFirestoreTimestamp
+import io.reactivex.rxjava3.core.Observable
 import com.lodenou.realestatemanager.data.RealEstateDao
+import com.lodenou.realestatemanager.data.RealestateApi
 import com.lodenou.realestatemanager.data.model.RealEstate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
@@ -39,7 +45,7 @@ class RealEstateRepository @Inject constructor(
         realEstateDao.delete(realEstate)
     }
 
-    fun getRealEstateById(id: Int): Flow<RealEstate> {
+    fun getRealEstateByIdRoom(id: String): Flow<RealEstate> {
         return realEstateDao.getRealEstateById(id)
     }
 
@@ -56,7 +62,7 @@ class RealEstateRepository @Inject constructor(
     }
 
 
-    fun saveRealEstateToFirestore(realEstate: RealEstate, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    fun saveRealEstateToFirestore(realEstate: RealEstate, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
         val firestoreData = hashMapOf(
             "type" to realEstate.type,
             "price" to realEstate.price,
@@ -72,17 +78,29 @@ class RealEstateRepository @Inject constructor(
             "address" to realEstate.address,
             "pointsOfInterest" to realEstate.pointsOfInterest,
             "status" to realEstate.status,
-            "marketEntryDate" to realEstate.marketEntryDate.toFirestoreTimestamp(), // Convert
-            "saleDate" to realEstate.saleDate?.toFirestoreTimestamp(), // Convert
+            "marketEntryDate" to realEstate.marketEntryDate.toFirestoreTimestamp(),
+            "saleDate" to realEstate.saleDate?.toFirestoreTimestamp(),
             "realEstateAgent" to realEstate.realEstateAgent
         )
 
-        firestore.collection("RealEstate").add(firestoreData)
+        val newDocumentRef = firestore.collection("RealEstate").document() // Crée une référence de document avec un ID unique
+        firestoreData["id"] = newDocumentRef.id // Optionnel: Ajouter l'ID au document pour le conserver dans Firestore
+
+        newDocumentRef.set(firestoreData)
             .addOnSuccessListener {
-                onSuccess()
+                onSuccess(newDocumentRef.id) // Passez l'ID du document généré à onSuccess
             }
             .addOnFailureListener { exception ->
                 onFailure(exception)
             }
+    }
+    fun getRealEstateByIdFirestore(id: String): Task<DocumentSnapshot> {
+        return firestore.collection("RealEstate").document(id).get()
+    }
+
+    // Map api
+
+    fun getLatLngFromAddress(address: String): Observable<GeocodeResult> {
+        return RealestateApi.retrofitService.getLatLngFromAddress(address, BuildConfig.API_KEY)
     }
 }

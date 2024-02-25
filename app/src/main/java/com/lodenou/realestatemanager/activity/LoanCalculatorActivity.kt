@@ -100,7 +100,7 @@ fun LoanTitleWithBackButton() {
             text = "Simulateur de prêt",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(start = 52.dp),
-            textAlign = TextAlign.Start
+            textAlign = TextAlign.Start,
         )
     }
 }

@@ -19,7 +19,7 @@ interface RealEstateDao {
     fun getAllRealEstates(): Flow<List<RealEstate>>
 
     @Query("SELECT * FROM real_estate_table WHERE id = :id")
-    fun getRealEstateById(id: Int): Flow<RealEstate>
+    fun getRealEstateById(id: String): Flow<RealEstate>
 
     @Update
     suspend fun update(realEstate: RealEstate)

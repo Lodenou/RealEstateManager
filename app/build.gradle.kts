@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,6 +9,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
 }
+
 
 
 android {
@@ -22,6 +26,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            val localProperties = Properties()
+            localProperties.load(FileInputStream(localPropertiesFile))
+
+            val apiKey = localProperties.getProperty("API_KEY")
+            if (apiKey != null) {
+                defaultConfig {
+                    buildConfigField("String", "API_KEY", "\"$apiKey\"")
+                }
+            } else {
+                throw GradleException("API_KEY not set in local.properties.")
+            }
         }
     }
 
@@ -42,6 +61,7 @@ android {
         jvmTarget = "1.8"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -126,4 +146,21 @@ dependencies {
 
     // images displayer coil 
     implementation ("io.coil-kt:coil-compose:1.4.0")
+
+    // MAP location
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // retrofit / http
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.squareup.retrofit2:adapter-rxjava3:2.9.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.0")
+
+    // rxjava
+    implementation ("io.reactivex.rxjava3:rxjava:3.1.5")
+    implementation ("io.reactivex.rxjava3:rxandroid:3.0.2")
+
+    // Coil
+    implementation("io.coil-kt:coil-compose:1.4.0")
 }
