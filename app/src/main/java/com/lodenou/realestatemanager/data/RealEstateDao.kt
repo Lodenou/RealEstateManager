@@ -18,6 +18,9 @@ interface RealEstateDao {
     @Query("SELECT * FROM real_estate_table")
     fun getAllRealEstates(): Flow<List<RealEstate>>
 
+    @Query("SELECT * FROM real_estate_table")
+    fun getAllRealEstatesSync(): Flow<List<RealEstate>>
+
     @Query("SELECT * FROM real_estate_table WHERE id = :id")
     fun getRealEstateById(id: String): Flow<RealEstate>
 
@@ -26,4 +29,13 @@ interface RealEstateDao {
 
     @Delete
     suspend fun delete(realEstate: RealEstate)
+
+    @Query("SELECT * FROM real_estate_table WHERE needsSyncToFirestore = 1")
+    fun getUnsyncedRealEstates(): Flow<List<RealEstate>>
+
+    @Query("UPDATE real_estate_table SET needsSyncToFirestore = :needsSyncToFirestore WHERE id = :id")
+    suspend fun updateRealEstateSyncStatus(id: String, needsSyncToFirestore: Boolean)
+
+    @Query("DELETE FROM real_estate_table WHERE id = :id")
+    suspend fun deleteRealEstateById(id: String)
 }

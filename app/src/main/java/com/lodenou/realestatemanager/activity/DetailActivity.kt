@@ -43,6 +43,7 @@ import coil.compose.rememberImagePainter
 import com.lodenou.realestatemanager.BuildConfig
 import com.lodenou.realestatemanager.Location
 import com.lodenou.realestatemanager.Utils
+import com.lodenou.realestatemanager.Utils.isInternetAvailable
 import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.ui.theme.RealEstateManagerTheme
 import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
@@ -65,18 +66,6 @@ class DetailActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun getLatLng(address: String) {
-
-        viewModel.getLatLngFromAddress(address) // Déclenchez l'opération
-
-        viewModel.location.observe(this) { location ->
-            // Mettez à jour l'UI avec la location
-
-
-            Log.d("DetailActivity", "Location: $location")
-        }
-    }
 }
 
 @Composable
@@ -89,6 +78,7 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel) {
         } else {
             viewModel.getRealEstateFromRoomById(realEstateId)
         }
+//        viewModel.getRealEstateFromRoomById(realEstateId)
     }
 
     val realEstate = viewModel.realEstate.observeAsState().value
@@ -131,6 +121,7 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel) {
 
 @Composable
 fun PhotoCarousel(images: List<ImageWithDescription>?) {
+    val context = LocalContext.current
     Column {
         Text(
             text = "Photos",
@@ -142,6 +133,13 @@ fun PhotoCarousel(images: List<ImageWithDescription>?) {
             if (images != null) {
                 items(images.size) { index ->
                     val image = images[index]
+                    // Choisissez l'URI à utiliser: cloudUri si disponible et internet est disponible, sinon localUri
+                    val imageUri = if (isInternetAvailable(context) && !image.cloudUri.isNullOrEmpty()) {
+                        image.cloudUri
+                    } else {
+                        image.localUri
+                    }
+
                     Card(
                         modifier = Modifier
                             .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -150,7 +148,7 @@ fun PhotoCarousel(images: List<ImageWithDescription>?) {
                     ) {
                         Box {
                             Image(
-                                painter = rememberImagePainter(image.imageUrl),
+                                painter = rememberImagePainter(data = imageUri),
                                 contentDescription = image.description,
                                 modifier = Modifier
                                     .height(150.dp)

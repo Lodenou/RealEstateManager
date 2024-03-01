@@ -53,10 +53,11 @@ class DetailViewModel @Inject constructor(
                             area = document.getDouble("area") ?: 0.0,
                             numberOfRooms = document.getLong("numberOfRooms")?.toInt() ?: 0,
                             description = document.getString("description") ?: "",
-                            images = (document["images"] as? List<Map<String, String>>)?.map { image ->
+                            images = (document["images"] as? List<Map<String, Any>>)?.map { imageMap ->
                                 ImageWithDescription(
-                                    imageUrl = image["url"] ?: "",
-                                    description = image["description"] ?: ""
+                                    localUri = imageMap["localUri"] as? String ?: "",
+                                    cloudUri = imageMap["cloudUri"] as? String ?: "",
+                                    description = imageMap["description"] as? String ?: ""
                                 )
                             } ?: listOf(),
                             address = document.getString("address") ?: "",

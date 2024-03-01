@@ -44,4 +44,8 @@ object AppModule {
     fun provideFirebaseFirestore(): FirebaseFirestore {
         return FirebaseFirestore.getInstance()
     }
+
+    @Provides
+    @Singleton
+    fun provideApplicationContext(@ApplicationContext appContext: Context): Context = appContext
 }

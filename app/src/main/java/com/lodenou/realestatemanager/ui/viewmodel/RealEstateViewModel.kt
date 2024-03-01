@@ -1,35 +1,64 @@
 package com.lodenou.realestatemanager.ui.viewmodel
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.lodenou.realestatemanager.Utils
+import com.lodenou.realestatemanager.Utils.isInternetAvailable
+import com.lodenou.realestatemanager.Utils.networkStatus
 import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.data.model.RealEstate
 import com.lodenou.realestatemanager.data.repository.RealEstateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.ZoneId
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class RealEstateViewModel @Inject constructor(private val repository: RealEstateRepository) : ViewModel() {
+class RealEstateViewModel @Inject constructor(
+    private val appContext: Context,
+    private val repository: RealEstateRepository
+) : ViewModel() {
 
     var imagesWithDescriptions = mutableStateListOf<ImageWithDescription>()
 
-
-    val realEstatesFromFirestore = MutableLiveData<List<RealEstate>>()
+    //    private val _realEstates = MutableLiveData<List<RealEstate>>()
+    private val _realEstates = MediatorLiveData<List<RealEstate>>()
+    val realEstates: LiveData<List<RealEstate>> = _realEstates
 
     init {
-        listenToRealEstatesUpdates()
+        observeNetworkStatus()
+        observeLocalRealEstates()
+    }
+
+    private fun observeLocalRealEstates() {
+        // Source Room
+        val roomSource = repository.allRealEstates.asLiveData()
+        _realEstates.addSource(roomSource) { realEstatesFromRoom ->
+            _realEstates.value = realEstatesFromRoom
+        }
+    }
+
+    private fun setupFirestoreListenerIfConnected() {
+        // for update or add
+        if (isInternetAvailable(appContext)) {
+            val firestoreSource = repository.listenToRealEstatesUpdates().asLiveData()
+            _realEstates.addSource(firestoreSource) { realEstatesFromFirestore ->
+                _realEstates.value = realEstatesFromFirestore
+            }
+        }
     }
 
 
@@ -74,84 +103,151 @@ class RealEstateViewModel @Inject constructor(private val repository: RealEstate
     }
 
 
-    fun saveRealEstateWithImages(realEstate: RealEstate) {
+//    fun saveRealEstateWithImages(realEstate: RealEstate) {
+//        viewModelScope.launch {
+//            try {
+//                val updatedImages = realEstate.images?.mapNotNull { image ->
+//                    if (image.imageUrl.startsWith("file://") || image.imageUrl.startsWith("content://")) {
+//                        // L'image est stockée localement, nécessite un upload
+//                        val newImageUrl = repository.uploadImage(Uri.parse(image.imageUrl))
+//                        image.copy(imageUrl = newImageUrl)
+//                    } else {
+//                        // L'image est déjà sur le Cloud, pas besoin de la re-télécharger
+//                        null // ou retourner 'image' si vous voulez la conserver telle quelle
+//                    }
+//                }?.toList()
+//
+//                if (updatedImages != null && updatedImages.isNotEmpty()) {
+//                    val updatedRealEstate = realEstate.copy(images = updatedImages)
+//                    repository.saveRealEstateToFirestore(updatedRealEstate, onSuccess = { /* succès */ }, onFailure = { /* échec */ })
+//                }
+//            } catch (e: Exception) {
+//                Log.e("ViewModel", "Error saving real estate with images", e)
+//            }
+//        }
+//    }
+
+
+    fun saveRealEstateWithImages(realEstate: RealEstate) = viewModelScope.launch {
+        realEstate.images?.forEach { image ->
+            // Gérez d'abord le chemin local
+            val localUri = image.localUri
+
+            // Initialiser cloudUri à null
+            var cloudUri: String? = null
+
+            // Si Internet est disponible, tentez d'uploader l'image et récupérez son URI cloud
+            if (isInternetAvailable(appContext)) {
+                cloudUri = try {
+                    repository.uploadImage(Uri.parse(localUri))
+                } catch (e: Exception) {
+                    Log.e("ViewModel", "Failed to upload image to cloud", e)
+                    null // En cas d'échec, laissez cloudUri à null
+                }
+            }
+
+            // Mise à jour de l'image avec le cloudUri
+            image.cloudUri = cloudUri
+
+            // Maintenant, sauvegardez ou mettez à jour l'objet RealEstate dans Room avec les nouvelles informations d'image
+            repository.insert(realEstate)
+        }
+
+        // Après avoir géré les images localement et potentiellement les avoir synchronisées avec le cloud,
+        // sauvegardez ou mettez à jour l'objet RealEstate dans Firestore si nécessaire
+        if (isInternetAvailable(appContext)) {
+            repository.saveRealEstateToFirestore(realEstate, onSuccess = {
+                Log.d("ViewModel", "RealEstate saved to Firestore successfully")
+            }, onFailure = { e ->
+                Log.e("ViewModel", "Failed to save RealEstate to Firestore", e)
+            })
+        }
+    }
+
+    // network and sync datas from local & firestore db
+    private fun observeNetworkStatus() {
+
+//        synchronizeIfConnected()
+        appContext.networkStatus()
+            .distinctUntilChanged() // Avoid repetition
+            .filter { it } // continue only if internet is on
+            .onEach {
+                synchronizeImagesIfNeeded()
+                synchronizeFirestoreToRoom()
+                synchronizeRoomToFirestore()
+                setupFirestoreListenerIfConnected()
+                setupFirestoreDocumentListener()
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun synchronizeFirestoreToRoom() {
         viewModelScope.launch {
             try {
+                repository.synchronizeFirestoreToRoom()
+                Log.d("ViewModel", "Synchronization from Firestore to Room succeeded")
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Synchronization from Firestore to Room failed", e)
+            }
+        }
+    }
 
+
+    private fun synchronizeIfConnected() {
+        viewModelScope.launch {
+            if (isInternetAvailable(appContext)) {
+                synchronizeFirestoreToRoom()
+            }
+        }
+    }
+
+    fun addNewRealEstate(realEstate: RealEstate) = viewModelScope.launch {
+        // Si l'internet n'est pas disponible, marquez pour synchronisation vers Firestore
+        if (!isInternetAvailable(appContext)) {
+            realEstate.needsSyncToFirestore = true
+        }
+
+        repository.insert(realEstate) // insert in Room
+    }
+
+    private fun synchronizeRoomToFirestore() = viewModelScope.launch {
+        repository.synchronizeRoomToFirestore()
+    }
+
+    private fun setupFirestoreDocumentListener() {
+        repository.setupFirestoreDocumentListener(viewModelScope)
+    }
+
+    private fun synchronizeImagesIfNeeded() = viewModelScope.launch {
+        repository.getAllRealEstatesSync().collect { realEstatesList ->
+            realEstatesList.forEach { realEstate ->
+                var updateRequired = false
                 val updatedImages = realEstate.images?.map { image ->
-                    val imageUrl = repository.uploadImage(Uri.parse(image.imageUrl))
-                    image.copy(imageUrl = imageUrl) // UPDATE IMAGE URL
+                    // Si l'image a déjà un cloudUri, pas besoin de la re-télécharger
+                    if (!image.cloudUri.isNullOrEmpty()) {
+                        image
+                    } else if (isInternetAvailable(appContext)) { // Remplacez isInternetAvailable() par votre fonction de vérification d'Internet
+                        // L'image n'a pas de cloudUri et nous avons accès à Internet, essayons d'uploader
+                        try {
+                            val cloudUri = repository.uploadImage(Uri.parse(image.localUri))
+                            updateRequired = true
+                            image.copy(cloudUri = cloudUri)
+                        } catch (e: Exception) {
+                            Log.e("ViewModel", "Failed to upload image ${image.localUri}", e)
+                            image // Gardez l'image telle quelle si l'upload échoue
+                        }
+                    } else {
+                        image // Gardez l'image telle quelle si pas d'accès à Internet
+                    }
                 }
 
-                // Créez une nouvelle instance de RealEstate avec les URLs des images mises à jour
-                val updatedRealEstate = realEstate.copy(images = updatedImages)
-
-                // Sauvegardez l'objet RealEstate mis à jour dans Firestore
-                repository.saveRealEstateToFirestore(updatedRealEstate, onSuccess = {
-                    // succeed
-                }, onFailure = {
-
-                })
-            } catch (_: Exception) {
-
+                // Si au moins une image a été mise à jour avec un cloudUri, mettez à jour le RealEstate dans Room
+                if (updateRequired) {
+                    val updatedRealEstate = realEstate.copy(images = updatedImages)
+                    repository.insert(updatedRealEstate)
+                }
             }
         }
     }
 
-
-
-    @Suppress("UNCHECKED_CAST")
-    private fun listenToRealEstatesUpdates() {
-        repository.getRealEstatesCollectionReference().addSnapshotListener { snapshots, e ->
-            if (e != null) {
-                Log.w("RealEstateViewModel", "Listen failed.", e)
-                return@addSnapshotListener
-            }
-
-            val realEstateList = ArrayList<RealEstate>()
-            snapshots?.documents?.forEach { document ->
-                // Manual treatment to avoid convert pb
-                val id = document.id
-                val type = document.getString("type")
-                val price = document.getDouble("price")
-                val area = document.getDouble("area")
-                val numberOfRooms = document.getLong("numberOfRooms")?.toInt()
-                val description = document.getString("description")
-                val images = document["images"] as? List<Map<String, String>>
-                val address = document.getString("address")
-                val pointsOfInterest = document.getString("pointsOfInterest")
-                val status = document.getString("status")
-                val marketEntryDate = document.getTimestamp("marketEntryDate")?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
-                val saleDate = document.getTimestamp("saleDate")?.toDate()?.toInstant()?.atZone(
-                    ZoneId.systemDefault())?.toLocalDate()
-                val realEstateAgent = document.getString("realEstateAgent")
-
-                // Conversion of image list
-                val convertedImages = images?.map { map ->
-                    ImageWithDescription(
-                        imageUrl = map["url"] ?: "",
-                        description = map["description"] ?: ""
-                    )
-                } ?: listOf()
-
-                val realEstate = RealEstate(
-                    id = id,
-                    type = type ?: "",
-                    price = price ?: 0.0,
-                    area = area ?: 0.0,
-                    numberOfRooms = numberOfRooms ?: 0,
-                    description = description ?: "",
-                    images = convertedImages,
-                    address = address ?: "",
-                    pointsOfInterest = pointsOfInterest ?: "",
-                    status = status ?: "",
-                    marketEntryDate = marketEntryDate ?: LocalDate.now(),
-                    saleDate = saleDate,
-                    realEstateAgent = realEstateAgent ?: ""
-                )
-                realEstateList.add(realEstate)
-            }
-            realEstatesFromFirestore.postValue(realEstateList)
-        }
-    }
 }

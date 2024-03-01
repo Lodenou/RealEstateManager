@@ -97,6 +97,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
 import com.lodenou.realestatemanager.R
+import com.lodenou.realestatemanager.Utils
+import com.lodenou.realestatemanager.Utils.isInternetAvailable
 import com.lodenou.realestatemanager.Utils.toFirestoreTimestamp
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
@@ -168,17 +170,18 @@ class RealEstateActivity : ComponentActivity() {
                                 .padding(padding),
                             color = MaterialTheme.colorScheme.background
                         ) {
-
-
-                            //TODO IF INTERNET METHODE GETALLREALESTATE DE FIRESTORE SINON UTILISER  .allRealEstates DE ROOM
-//                            val realEstatesRoom by viewModel.allRealEstates.observeAsState(initial = emptyList()) // room
-//                            RealEstateListScreen(realEstates = realEstatesRoom)
-
-//                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(initial = emptyList())
-                            val realEstates by viewModel.realEstatesFromFirestore.observeAsState(
-                                emptyList()
-                            )
+                            //todo coroutine
+                            val realEstates by viewModel.realEstates.observeAsState(emptyList())
                             RealEstateListScreen(realEstates = realEstates)
+
+//                            if (Utils.isInternetAvailable(context)){
+//                                val realEstates by viewModel.realEstates.observeAsState(emptyList()) // firestore
+//                                RealEstateListScreen(realEstates = realEstates)
+//                            }
+//                            else {
+//                                val realEstatesRoom by viewModel.allRealEstates.observeAsState(initial = emptyList()) // room
+//                                RealEstateListScreen(realEstates = realEstatesRoom)
+//                            }
                         }
                     }
                 }
@@ -201,9 +204,10 @@ class RealEstateActivity : ComponentActivity() {
 
 
     @Composable
-    fun RealEstateItem(realEstate: RealEstate, context: Context = LocalContext.current) {
+    fun RealEstateItem(realEstate: RealEstate) {
+        val context = LocalContext.current
         Column(modifier = Modifier
-                .padding(16.dp)
+            .padding(16.dp)
             .clickable { // Intent pour lancer DetailActivity
                 val intent = Intent(context, DetailActivity::class.java).apply {
                     putExtra("realEstateId", realEstate.id)
@@ -213,11 +217,18 @@ class RealEstateActivity : ComponentActivity() {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (!realEstate.images.isNullOrEmpty()) {
+                if (realEstate.images?.isNotEmpty() == true) {
+                    // Sélectionnez l'URI appropriée en fonction de la disponibilité d'Internet
+                    val imageUrl = if (isInternetAvailable(context) && !realEstate.images.first().cloudUri.isNullOrEmpty()) {
+                        realEstate.images.first().cloudUri
+                    } else {
+                        realEstate.images.first().localUri
+                    }
+
                     // Displaying the image with Coil
                     Image(
                         painter = rememberImagePainter(
-                            data = realEstate.images.first().imageUrl,
+                            data = imageUrl,
                             builder = {
                                 error(R.drawable.ic_launcher_foreground) // Your error image
                                 placeholder(R.drawable.ic_launcher_background) // Loading image
@@ -425,7 +436,8 @@ class RealEstateActivity : ComponentActivity() {
                 Button(onClick = {
                     if (isFormValid) {
                         val realEstate = RealEstate(
-
+                            // create random id to avoid pb linked to auto-generated room id or document id from firestore
+                            id = UUID.randomUUID().toString(),
                             type = type,
                             price = price.toDoubleOrNull(),
                             area = area.toDoubleOrNull(),
@@ -437,13 +449,17 @@ class RealEstateActivity : ComponentActivity() {
                             status = status,
                             marketEntryDate = marketEntryDate,
                             saleDate = saleDate,
-                            realEstateAgent = realEstateAgentName
+                            realEstateAgent = realEstateAgentName,
+                            needsSyncToRoom = false
                         )
 
-                        //TODO SAVE TO ROOM
 
+                        // Save Object to room
+                        realEstateViewModel.addNewRealEstate(realEstate)
                         // Save Object to Firestore
-                        realEstateViewModel.saveRealEstateWithImages(realEstate)
+                        if  (isInternetAvailable(context)) {
+                            realEstateViewModel.saveRealEstateWithImages(realEstate)
+                        }
 
                         onDismiss()
                     } else {
@@ -464,6 +480,8 @@ class RealEstateActivity : ComponentActivity() {
             }
         )
     }
+
+
 
     @Composable
     fun CustomDropdownMenu(
@@ -590,6 +608,17 @@ class RealEstateActivity : ComponentActivity() {
         val pickImageLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                 uri?.let {
+
+                    Log.d("ImagePicker", "URI Received: $uri")
+                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    try {
+                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                        Log.d("ImagePicker", "Persistable permissions taken successfully")
+                    } catch (e: Exception) {
+                        Log.e("ImagePicker", "Failed to take persistable permissions", e)
+                    }
+
+
                     imageUri = it
                     showDescriptionDialog = true
                 }
@@ -703,12 +732,18 @@ class RealEstateActivity : ComponentActivity() {
 
     @Composable
     fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
-        Column(
-        ) {
+        val context = LocalContext.current
+        Column {
             viewModel.imagesWithDescriptions.forEach { imageWithDescription ->
+                val imageUrl = if (isInternetAvailable(context) && !imageWithDescription.cloudUri.isNullOrEmpty()) {
+                    imageWithDescription.cloudUri
+                } else {
+                    imageWithDescription.localUri
+                }
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = rememberImagePainter(imageWithDescription.imageUrl),
+                        painter = rememberImagePainter(imageWithDescription.localUri),
                         contentDescription = "Selected Image",
                         modifier = Modifier.size(100.dp)
                     )
