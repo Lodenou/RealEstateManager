@@ -1,11 +1,8 @@
 package com.lodenou.realestatemanager.activity
 
-import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -71,24 +68,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.core.content.ContextCompat
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import android.Manifest
-import android.app.Activity
+import android.graphics.drawable.shapes.Shape
 import android.os.Environment
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.ButtonDefaults.shape
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -97,9 +87,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
 import com.lodenou.realestatemanager.R
-import com.lodenou.realestatemanager.Utils
-import com.lodenou.realestatemanager.Utils.isInternetAvailable
-import com.lodenou.realestatemanager.Utils.toFirestoreTimestamp
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
@@ -173,15 +160,6 @@ class RealEstateActivity : ComponentActivity() {
                             //todo coroutine
                             val realEstates by viewModel.realEstates.observeAsState(emptyList())
                             RealEstateListScreen(realEstates = realEstates)
-
-//                            if (Utils.isInternetAvailable(context)){
-//                                val realEstates by viewModel.realEstates.observeAsState(emptyList()) // firestore
-//                                RealEstateListScreen(realEstates = realEstates)
-//                            }
-//                            else {
-//                                val realEstatesRoom by viewModel.allRealEstates.observeAsState(initial = emptyList()) // room
-//                                RealEstateListScreen(realEstates = realEstatesRoom)
-//                            }
                         }
                     }
                 }
@@ -212,18 +190,15 @@ class RealEstateActivity : ComponentActivity() {
                 val intent = Intent(context, DetailActivity::class.java).apply {
                     putExtra("realEstateId", realEstate.id)
                 }
-                context.startActivity(intent) }) {
+                context.startActivity(intent)
+            }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (realEstate.images?.isNotEmpty() == true) {
                     // Sélectionnez l'URI appropriée en fonction de la disponibilité d'Internet
-                    val imageUrl = if (isInternetAvailable(context) && !realEstate.images.first().cloudUri.isNullOrEmpty()) {
-                        realEstate.images.first().cloudUri
-                    } else {
-                        realEstate.images.first().localUri
-                    }
+                    val imageUrl = realEstate.images.first().imageUri
 
                     // Displaying the image with Coil
                     Image(
@@ -258,6 +233,7 @@ class RealEstateActivity : ComponentActivity() {
             }
         }
     }
+
 
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -303,9 +279,23 @@ class RealEstateActivity : ComponentActivity() {
 
         var description by remember { mutableStateOf("") }
         var address by remember { mutableStateOf("") }
-        var pointsOfInterest by remember { mutableStateOf("") }
-        var status by remember { mutableStateOf("") }
 
+        // point of interest
+        val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant")
+        var selectedPointsOfInterest by remember { mutableStateOf(listOf<String>()) }
+
+        // Une fonction pour gérer la sélection/désélection
+        val onPointOfInterestSelected: (String, Boolean) -> Unit = { point, isSelected ->
+            selectedPointsOfInterest = if (isSelected) {
+                // Ajouter le point à la liste s'il est sélectionné
+                selectedPointsOfInterest + point
+            } else {
+                // Retirer le point de la liste s'il est désélectionné
+                selectedPointsOfInterest - point
+            }
+        }
+
+        var status by remember { mutableStateOf("") }
         val statuses = listOf("Disponible", "Vendu")
 
         var marketEntryDate by remember { mutableStateOf(LocalDate.now()) }
@@ -393,12 +383,14 @@ class RealEstateActivity : ComponentActivity() {
                         label = { Text("Adresse") },
                         shape = RoundedCornerShape(30.dp)
                     )
-                    OutlinedTextField(
-                        value = pointsOfInterest,
-                        onValueChange = { pointsOfInterest = it },
-                        label = { Text("Points d'intérêt") },
+
+                    PointsOfInterestDropdownMenu(
+                        pointsOfInterest = allPointsOfInterest,
+                        selectedPointsOfInterest = selectedPointsOfInterest,
+                        onPointOfInterestSelected = onPointOfInterestSelected,
                         shape = RoundedCornerShape(30.dp)
                     )
+
                     CustomDropdownMenu(
                         options = statuses,
                         selectedOption = status,
@@ -445,21 +437,18 @@ class RealEstateActivity : ComponentActivity() {
                             description = description,
                             images = realEstateViewModel.imagesWithDescriptions, // vm list used here
                             address = address,
-                            pointsOfInterest = pointsOfInterest,
+                            pointsOfInterest = selectedPointsOfInterest,
                             status = status,
                             marketEntryDate = marketEntryDate,
                             saleDate = saleDate,
                             realEstateAgent = realEstateAgentName,
-                            needsSyncToRoom = false
+
                         )
 
 
                         // Save Object to room
-                        realEstateViewModel.addNewRealEstate(realEstate)
-                        // Save Object to Firestore
-                        if  (isInternetAvailable(context)) {
-                            realEstateViewModel.saveRealEstateWithImages(realEstate)
-                        }
+                        realEstateViewModel.insert(realEstate)
+
 
                         onDismiss()
                     } else {
@@ -479,6 +468,52 @@ class RealEstateActivity : ComponentActivity() {
                 }
             }
         )
+    }
+
+    @Composable
+    fun PointsOfInterestDropdownMenu(
+        pointsOfInterest: List<String>,
+        selectedPointsOfInterest: List<String>,
+        onPointOfInterestSelected: (String, Boolean) -> Unit,
+        shape: RoundedCornerShape
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+
+        Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
+            Button(
+                onClick = { expanded = true },
+                shape = shape, // Appliquer la forme arrondie spécifiée à ce bouton
+                // Vous pouvez ajuster le style du bouton selon vos besoins ici
+            ) {
+                Text("Points d'intérêt")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                pointsOfInterest.forEach { point ->
+                    val isSelected = point in selectedPointsOfInterest
+                    DropdownMenuItem(
+                        onClick = {
+                            // Inverser la sélection de ce point d'intérêt sans fermer le menu
+                            onPointOfInterestSelected(point, !isSelected)
+                            // Note: Nous avons retiré `expanded = false` ici pour garder le menu ouvert
+                        },
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = null, // Le changement est géré par onClick, donc pas besoin d'implémenter onCheckedChange ici
+                                    modifier = Modifier.padding(all = 8.dp) // Ajout d'un padding pour le Checkbox pour améliorer l'ergonomie
+                                )
+                                Text(text = point)
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 
 
@@ -617,8 +652,6 @@ class RealEstateActivity : ComponentActivity() {
                     } catch (e: Exception) {
                         Log.e("ImagePicker", "Failed to take persistable permissions", e)
                     }
-
-
                     imageUri = it
                     showDescriptionDialog = true
                 }
@@ -695,7 +728,6 @@ class RealEstateActivity : ComponentActivity() {
     fun CustomButton(text: String, onClick: () -> Unit) {
         Button(
             onClick = onClick,
-            colors = ButtonDefaults.buttonColors(contentColor = Color.Black)
         ) {
             Text(text, color = Color.Black)
         }
@@ -735,15 +767,13 @@ class RealEstateActivity : ComponentActivity() {
         val context = LocalContext.current
         Column {
             viewModel.imagesWithDescriptions.forEach { imageWithDescription ->
-                val imageUrl = if (isInternetAvailable(context) && !imageWithDescription.cloudUri.isNullOrEmpty()) {
-                    imageWithDescription.cloudUri
-                } else {
-                    imageWithDescription.localUri
-                }
+
+                    imageWithDescription.imageUri
+
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = rememberImagePainter(imageWithDescription.localUri),
+                        painter = rememberImagePainter(imageWithDescription.imageUri),
                         contentDescription = "Selected Image",
                         modifier = Modifier.size(100.dp)
                     )

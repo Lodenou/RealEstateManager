@@ -73,12 +73,7 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel) {
     // Utilisez LaunchedEffect pour charger les données une fois
     val context = LocalContext.current
     LaunchedEffect(realEstateId) {
-        if (Utils.isInternetAvailable(context)) {
-            viewModel.getRealEstateFromFirestore(realEstateId)
-        } else {
             viewModel.getRealEstateFromRoomById(realEstateId)
-        }
-//        viewModel.getRealEstateFromRoomById(realEstateId)
     }
 
     val realEstate = viewModel.realEstate.observeAsState().value
@@ -134,11 +129,8 @@ fun PhotoCarousel(images: List<ImageWithDescription>?) {
                 items(images.size) { index ->
                     val image = images[index]
                     // Choisissez l'URI à utiliser: cloudUri si disponible et internet est disponible, sinon localUri
-                    val imageUri = if (isInternetAvailable(context) && !image.cloudUri.isNullOrEmpty()) {
-                        image.cloudUri
-                    } else {
-                        image.localUri
-                    }
+                    val imageUri = image.imageUri
+
 
                     Card(
                         modifier = Modifier

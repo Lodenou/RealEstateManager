@@ -40,42 +40,7 @@ class DetailViewModel @Inject constructor(
     private val _realEstate = MutableLiveData<RealEstate?>()
     val realEstate: LiveData<RealEstate?> = _realEstate
 
-    fun getRealEstateFromFirestore(id: String) = viewModelScope.launch {
-        try {
-            val documentSnapshot = repository.getRealEstateByIdFirestore(id).await()
-            documentSnapshot.let { document ->
-                val realEstate = document.getTimestamp("marketEntryDate")?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
-                    ?.let {
-                        RealEstate(
-                            id = document.id,
-                            type = document.getString("type") ?: "",
-                            price = document.getDouble("price") ?: 0.0,
-                            area = document.getDouble("area") ?: 0.0,
-                            numberOfRooms = document.getLong("numberOfRooms")?.toInt() ?: 0,
-                            description = document.getString("description") ?: "",
-                            images = (document["images"] as? List<Map<String, Any>>)?.map { imageMap ->
-                                ImageWithDescription(
-                                    localUri = imageMap["localUri"] as? String ?: "",
-                                    cloudUri = imageMap["cloudUri"] as? String ?: "",
-                                    description = imageMap["description"] as? String ?: ""
-                                )
-                            } ?: listOf(),
-                            address = document.getString("address") ?: "",
-                            pointsOfInterest = document.getString("pointsOfInterest") ?: "",
-                            status = document.getString("status") ?: "",
-                            marketEntryDate = it,
-                            saleDate = document.getTimestamp("saleDate")?.toDate()?.toInstant()?.atZone(
-                                ZoneId.systemDefault())?.toLocalDate(),
-                            realEstateAgent = document.getString("realEstateAgent") ?: ""
-                        )
-                    }
-                _realEstate.value = realEstate
-            }
-        } catch (e: Exception) {
-            Log.e("RealEstateDetailVM", "Error loading Real Estate", e)
-            _realEstate.value = null
-        }
-    }
+
 
     fun getLatLngFromAddress(address: String) {
         compositeDisposable.add(
@@ -95,10 +60,8 @@ class DetailViewModel @Inject constructor(
                 })
         )
     }
-
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear() // Clean sub when vm is destroyed
     }
-
 }

@@ -14,15 +14,16 @@ import java.time.ZoneId
 import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 object Utils {
 
     fun convertDollarToEuro(dollars: Int): Int {
-        return Math.round(dollars * 0.812).toInt()
+        return (dollars * 0.812).roundToInt().toInt()
     }
 
     fun convertEuroToDollar(euros: Int): Int {
-        return Math.round(euros * 1.231).toInt()
+        return (euros * 1.231).roundToInt().toInt()
     }
 
     fun getTodayDate(): String {
@@ -39,39 +40,5 @@ object Utils {
         val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false
     }
-
-    fun Context.networkStatus(): Flow<Boolean> = callbackFlow {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCallback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                trySend(true).isSuccess
-            }
-
-            override fun onLost(network: Network) {
-                trySend(false).isSuccess
-            }
-        }
-
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-
-        connectivityManager.registerNetworkCallback(request, networkCallback)
-
-        awaitClose { connectivityManager.unregisterNetworkCallback(networkCallback) }
-    }
-
-    // Add after
-
-    fun LocalDate.toFirestoreTimestamp(): Timestamp {
-        val date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
-        return com.google.firebase.Timestamp(date)
-    }
-
-    // Extension function pour convertir un Timestamp de Firestore en LocalDate
-    fun Timestamp.toLocalDate(): LocalDate {
-        return this.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-    }
-
 
 }
