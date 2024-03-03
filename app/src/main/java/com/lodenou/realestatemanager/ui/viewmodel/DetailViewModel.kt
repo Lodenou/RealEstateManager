@@ -39,9 +39,7 @@ class DetailViewModel @Inject constructor(
 
     private val _realEstate = MutableLiveData<RealEstate?>()
     val realEstate: LiveData<RealEstate?> = _realEstate
-
-
-
+    
     fun getLatLngFromAddress(address: String) {
         compositeDisposable.add(
             repository.getLatLngFromAddress(address)

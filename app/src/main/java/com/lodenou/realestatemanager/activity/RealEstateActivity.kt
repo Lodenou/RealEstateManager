@@ -19,15 +19,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,26 +63,31 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
 import android.Manifest
-import android.graphics.drawable.shapes.Shape
+import android.content.pm.PackageManager
 import android.os.Environment
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.ButtonDefaults.shape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
 import com.lodenou.realestatemanager.R
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomAlertDialog
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.DrawerContent
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.RealEstateItem
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.RealEstateListScreen
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.ToolbarRealEstate
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
@@ -100,707 +101,93 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
 @AndroidEntryPoint
 class RealEstateActivity : ComponentActivity() {
 
-    // Hilt injects
+
     private val viewModel: RealEstateViewModel by viewModels()
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 101
+    }
+    private lateinit var permissionLauncher: ActivityResultLauncher<String>
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContent {
-            val context = LocalContext.current
-            RealEstateManagerTheme {
-                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-                val coroutineScope = rememberCoroutineScope()
-
-                ModalNavigationDrawer(
-                    drawerContent = {
-
-                        Column(
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.surface)
-                                .width(260.dp)
-                                .fillMaxHeight()
-                                .padding(16.dp)
-                        ) {
-
-                            TextButton(onClick = {
-
-                                val intent = Intent(context, LoanCalculatorActivity::class.java)
-                                context.startActivity(intent)
-                            }) {
-                                Text("Calculateur de prêt immobilier")
-                            }
-                        }
-                    },
-                    drawerState = drawerState
-                ) {
-                    Scaffold(
-                        topBar = {
-                            ToolbarRealEstate(onMenuClick = {
-                                coroutineScope.launch {
-                                    if (drawerState.isClosed) {
-                                        drawerState.open()
-                                    } else {
-                                        drawerState.close()
-                                    }
-                                }
-                            })
-                        }
-                    ) { padding ->
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(padding),
-                            color = MaterialTheme.colorScheme.background
-                        ) {
-                            //todo coroutine
-                            val realEstates by viewModel.realEstates.observeAsState(emptyList())
-                            RealEstateListScreen(realEstates = realEstates)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun RealEstateListScreen(realEstates: List<RealEstate>?) {
-        if (realEstates.isNullOrEmpty()) {
-            Text(text = "Aucun bien à afficher", modifier = Modifier.padding(16.dp))
-        } else {
-            LazyColumn {
-                items(realEstates) { realEstate ->
-                    RealEstateItem(realEstate)
-                }
-            }
-        }
-    }
-
-
-    @Composable
-    fun RealEstateItem(realEstate: RealEstate) {
-        val context = LocalContext.current
-        Column(modifier = Modifier
-            .padding(16.dp)
-            .clickable { // Intent pour lancer DetailActivity
-                val intent = Intent(context, DetailActivity::class.java).apply {
-                    putExtra("realEstateId", realEstate.id)
-                }
-                context.startActivity(intent)
-            }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (realEstate.images?.isNotEmpty() == true) {
-                    // Sélectionnez l'URI appropriée en fonction de la disponibilité d'Internet
-                    val imageUrl = realEstate.images.first().imageUri
-
-                    // Displaying the image with Coil
-                    Image(
-                        painter = rememberImagePainter(
-                            data = imageUrl,
-                            builder = {
-                                error(R.drawable.ic_launcher_foreground) // Your error image
-                                placeholder(R.drawable.ic_launcher_background) // Loading image
-                            }
-                        ),
-                        contentDescription = "Real Estate Image",
-                        modifier = Modifier
-                            .size(100.dp) // Adjust the image size according to your needs
-                            .clip(RoundedCornerShape(8.dp)) // Rounds the corners of the image
-                    )
-                } else {
-                    // Using Icon to display an icon when no image is available
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "No image",
-                        modifier = Modifier.size(100.dp) // Ensure the icon size matches the images for uniform layout
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp)) // Space between the image/icon and text
-
-                // Real estate details to the right of the image
-                Column {
-                    Text(text = "Type: ${realEstate.type}")
-                    Text(text = "Price: ${realEstate.price}")
-                    Text(text = "Address: ${realEstate.address}")
-                }
-            }
-        }
-    }
-
-
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ToolbarRealEstate(onMenuClick: () -> Unit) {
-        var showDialog by remember { mutableStateOf(false) }
-
-        TopAppBar(
-            title = { Text("Real Estate Manager") },
-            navigationIcon = {
-                IconButton(onClick = onMenuClick) {
-                    Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
-                }
-            },
-            actions = {
-                IconButton(onClick = { showDialog = true }) {
-                    Icon(Icons.Filled.Add, contentDescription = "Ajouter")
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        )
-
-        if (showDialog) {
-            CustomAlertDialog(onDismiss = { showDialog = false })
-        }
-    }
-
-    @Composable
-    fun CustomAlertDialog(onDismiss: () -> Unit) {
-
-        val context = LocalContext.current
-        val realEstateViewModel: RealEstateViewModel by viewModels()
-
-        var type by remember { mutableStateOf("") }
-        val types = listOf("Maison", "Appartement", "Loft")
-        var price by remember { mutableStateOf("") }
-        var area by remember { mutableStateOf("") }
-
-
-        var numberOfRooms by remember { mutableStateOf("") }
-        val rooms = listOf("1", "2", "3", "4", "5", "6")
-
-
-        var description by remember { mutableStateOf("") }
-        var address by remember { mutableStateOf("") }
-
-        // point of interest
-        val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant")
-        var selectedPointsOfInterest by remember { mutableStateOf(listOf<String>()) }
-
-        // Une fonction pour gérer la sélection/désélection
-        val onPointOfInterestSelected: (String, Boolean) -> Unit = { point, isSelected ->
-            selectedPointsOfInterest = if (isSelected) {
-                // Ajouter le point à la liste s'il est sélectionné
-                selectedPointsOfInterest + point
+        permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                // La permission est accordée
+                setupContent()
             } else {
-                // Retirer le point de la liste s'il est désélectionné
-                selectedPointsOfInterest - point
+                // La permission est refusée, afficher un message ou prendre une autre action
+                Toast.makeText(this, "Permission d'accès au stockage refusée.", Toast.LENGTH_LONG).show()
+                // Vous pourriez vouloir fermer l'activité ou désactiver certaines fonctionnalités ici
             }
         }
 
-        var status by remember { mutableStateOf("") }
-        val statuses = listOf("Disponible", "Vendu")
-
-        var marketEntryDate by remember { mutableStateOf(LocalDate.now()) }
-        var saleDate by remember { mutableStateOf<LocalDate?>(null) }
-
-        var realEstateAgentName by remember { mutableStateOf("") }
-
-
-        val isFormValid =
-            type.isNotEmpty() && price.isNotEmpty() && area.isNotEmpty() && numberOfRooms.isNotEmpty() &&
-                    description.isNotEmpty() && address.isNotEmpty() && status.isNotEmpty() &&
-                    marketEntryDate != null && realEstateAgentName.isNotEmpty()
-
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text(text = "Détails du bien immobilier") },
-            text = {
-                val scrollState = rememberScrollState()
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(scrollState)
-                        .padding(6.dp) // Ajoutez du padding selon vos préférences
-                ) {
-
-
-                    ImagePickerWithDescription(viewModel = realEstateViewModel)
-
-                    CustomDropdownMenu(
-                        options = types,
-                        selectedOption = type,
-                        onOptionSelected = { selected -> type = selected },
-                        label = "Type"
-                    )
-                    OutlinedTextField(
-                        value = price,
-                        onValueChange = { newValue ->
-                            // Filter for digit only
-                            if (newValue.all { it.isDigit() }) {
-                                val newValueLong = newValue.toLongOrNull() ?: 0L
-                                // max value allowed
-                                if (newValueLong <= 999_999_999L) {
-                                    price = newValue
-                                }
-                            }
-                        },
-                        label = { Text("Prix") },
-                        // digit keyboard
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        trailingIcon = { Text("$") },
-                        shape = RoundedCornerShape(30.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = area,
-                        onValueChange = { newValue ->
-                            // Filter for digit only
-                            if (newValue.all { it.isDigit() }) {
-                                val newValueLong = newValue.toLongOrNull() ?: 0L
-                                // max value allowed
-                                if (newValueLong <= 9999L) {
-                                    area = newValue
-                                }
-                            }
-                        },
-                        label = { Text("Surface") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        trailingIcon = { Text("m²") },
-                        shape = RoundedCornerShape(30.dp)
-                    )
-                    CustomDropdownMenu(
-                        options = rooms,
-                        selectedOption = numberOfRooms,
-                        onOptionSelected = { selected -> numberOfRooms = selected },
-                        label = "Nombre de pièces"
-                    )
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description") },
-                        shape = RoundedCornerShape(30.dp)
-                    )
-                    OutlinedTextField(
-                        value = address,
-                        onValueChange = { address = it },
-                        label = { Text("Adresse") },
-                        shape = RoundedCornerShape(30.dp)
-                    )
-
-                    PointsOfInterestDropdownMenu(
-                        pointsOfInterest = allPointsOfInterest,
-                        selectedPointsOfInterest = selectedPointsOfInterest,
-                        onPointOfInterestSelected = onPointOfInterestSelected,
-                        shape = RoundedCornerShape(30.dp)
-                    )
-
-                    CustomDropdownMenu(
-                        options = statuses,
-                        selectedOption = status,
-                        onOptionSelected = { selected -> status = selected },
-                        label = "Statut"
-                    )
-
-                    CustomDatePicker(
-                        value = marketEntryDate,
-                        onValueChange = { marketEntryDate = it },
-                        label = "Date de mise sur le marché",
-                        defaultText = ""
-                    )
-
-                    CustomDatePicker(
-                        value = saleDate,
-                        onValueChange = { newDate ->
-                            saleDate =
-                                newDate // Mise à jour de saleDate avec la nouvelle date ou null pour réinitialiser
-                        },
-                        label = "Date de vente",
-                        defaultText = "Pas encore vendu"
-                    )
-
-                    OutlinedTextField(
-                        value = realEstateAgentName,
-                        onValueChange = { realEstateAgentName = it },
-                        label = { Text("Agent immobilier") },
-                        shape = RoundedCornerShape(30.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (isFormValid) {
-                        val realEstate = RealEstate(
-                            // create random id to avoid pb linked to auto-generated room id or document id from firestore
-                            id = UUID.randomUUID().toString(),
-                            type = type,
-                            price = price.toDoubleOrNull(),
-                            area = area.toDoubleOrNull(),
-                            numberOfRooms = numberOfRooms.toIntOrNull(),
-                            description = description,
-                            images = realEstateViewModel.imagesWithDescriptions, // vm list used here
-                            address = address,
-                            pointsOfInterest = selectedPointsOfInterest,
-                            status = status,
-                            marketEntryDate = marketEntryDate,
-                            saleDate = saleDate,
-                            realEstateAgent = realEstateAgentName,
-
-                        )
-
-
-                        // Save Object to room
-                        realEstateViewModel.insert(realEstate)
-
-
-                        onDismiss()
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Veuillez remplir tous les champs requis.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }) {
-                    Text("Confirmer", color = Color.Black)
-                }
-            },
-            dismissButton = {
-                Button(onClick = { onDismiss() }) {
-                    Text("Annuler", color = Color.Black)
-                }
-            }
-        )
+        // Check permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            //ask permission
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+        } else {
+            // if permission granted set content
+            setupContent()
+        }
     }
 
-    @Composable
-    fun PointsOfInterestDropdownMenu(
-        pointsOfInterest: List<String>,
-        selectedPointsOfInterest: List<String>,
-        onPointOfInterestSelected: (String, Boolean) -> Unit,
-        shape: RoundedCornerShape
-    ) {
-        var expanded by remember { mutableStateOf(false) }
-
-        Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
-            Button(
-                onClick = { expanded = true },
-                shape = shape, // Appliquer la forme arrondie spécifiée à ce bouton
-                // Vous pouvez ajuster le style du bouton selon vos besoins ici
-            ) {
-                Text("Points d'intérêt")
-            }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                pointsOfInterest.forEach { point ->
-                    val isSelected = point in selectedPointsOfInterest
-                    DropdownMenuItem(
-                        onClick = {
-                            // Inverser la sélection de ce point d'intérêt sans fermer le menu
-                            onPointOfInterestSelected(point, !isSelected)
-                            // Note: Nous avons retiré `expanded = false` ici pour garder le menu ouvert
-                        },
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Checkbox(
-                                    checked = isSelected,
-                                    onCheckedChange = null, // Le changement est géré par onClick, donc pas besoin d'implémenter onCheckedChange ici
-                                    modifier = Modifier.padding(all = 8.dp) // Ajout d'un padding pour le Checkbox pour améliorer l'ergonomie
-                                )
-                                Text(text = point)
-                            }
-                        }
-                    )
-                }
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                setupContent()
+            } else {
+                // La permission a été refusée, gérer le cas
+                // Par exemple, afficher un message ou fermer l'activité
             }
         }
     }
 
-
-
-    @Composable
-    fun CustomDropdownMenu(
-        options: List<String>,
-        selectedOption: String,
-        onOptionSelected: (String) -> Unit,
-        label: String = "Select an option"
-    ) {
-        var expanded by remember { mutableStateOf(false) }
-
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Button(
-                onClick = { expanded = true },
-                colors = buttonColors(
-                    containerColor = Color(0xFF48444f),
-                    contentColor = Color.White
-                )
-            ) {
-                Text(text = selectedOption.ifEmpty { label }, color = Color.White)
-                Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "Dropdown")
+    private fun setupContent() {
+        setContent {
+            RealEstateManagerTheme {
+                MainScreen(viewModel)
             }
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color(0xFF48444f))
-            ) {
-                for (option in options) {
-                    DropdownMenuItem(
-                        { Text(text = option, color = Color.White) },
-                        onClick = {
-                            onOptionSelected(option)
-                            expanded = false
-                        })
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun CustomDatePicker(
-        value: LocalDate?,
-        onValueChange: (LocalDate?) -> Unit,
-        label: String,
-        defaultText: String
-    ) {
-        val open = remember { mutableStateOf(false) }
-
-        if (open.value) {
-            val initialDate =
-                value ?: LocalDate.now()
-            CalendarDialog(
-                state = rememberUseCaseState(
-                    visible = true,
-                    onCloseRequest = { open.value = false }),
-                config = CalendarConfig(
-                    yearSelection = true,
-                    style = CalendarStyle.MONTH,
-                ),
-                selection = CalendarSelection.Date(
-                    selectedDate = initialDate
-                ) { newDate ->
-                    onValueChange(newDate)
-                },
-            )
-        }
-
-        val displayText = value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: defaultText
-        OutlinedTextField(
-            modifier = Modifier.clickable { open.value = true },
-            enabled = false,
-            value = displayText,
-            onValueChange = {},
-            label = { Text(label) },
-            shape = RoundedCornerShape(30.dp),
-            trailingIcon = {
-                if (value != null) {
-                    Icon(
-                        Icons.Default.Clear,
-                        contentDescription = "Clear",
-                        modifier = Modifier.clickable { onValueChange(null) }
-                    )
-                }
-            },
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledBorderColor = MaterialTheme.colorScheme.outline,
-                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-    }
-
-    // Image part
-
-    @Composable
-    fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
-        val context = LocalContext.current
-        var imageUri by remember { mutableStateOf<Uri?>(null) }
-        var showDescriptionDialog by remember { mutableStateOf(false) }
-        var imageDescription by remember { mutableStateOf("") }
-        var showSourceDialog by remember { mutableStateOf(false) }
-
-        // Création d'une Uri pour stocker l'image prise par la caméra
-        val photoUri = remember {
-            mutableStateOf<Uri?>(null)
-        }
-
-        // Préparer le launcher pour prendre une photo
-        val takePictureLauncher =
-            rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-                if (success) {
-                    photoUri.value?.let { uri ->
-                        imageUri = uri
-                        showDescriptionDialog = true
-                    }
-                }
-            }
-
-        // Préparer le launcher pour sélectionner une image
-        val pickImageLauncher =
-            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-                uri?.let {
-
-                    Log.d("ImagePicker", "URI Received: $uri")
-                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    try {
-                        context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                        Log.d("ImagePicker", "Persistable permissions taken successfully")
-                    } catch (e: Exception) {
-                        Log.e("ImagePicker", "Failed to take persistable permissions", e)
-                    }
-                    imageUri = it
-                    showDescriptionDialog = true
-                }
-            }
-
-        // Demander la permission d'accès à la caméra
-        val requestPermissionLauncher =
-            rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-                if (isGranted) {
-                    // Créer une Uri temporaire pour l'image
-                    photoUri.value = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.provider",
-                        createImageFile(context)
-                    )
-                    takePictureLauncher.launch(photoUri.value)
-                } else {
-                    Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-        // Sélectionner la source de l'image
-        fun showImageSourceDialog() {
-            showSourceDialog = true
-        }
-
-        if (showSourceDialog) {
-            AlertDialog(
-                onDismissRequest = { showSourceDialog = false },
-                title = { Text("Sélectionner la source de l'image") },
-                text = {
-                    Column {
-                        CustomButton(
-                            text = "Prendre une photo",
-                            onClick = {
-                                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-                                showSourceDialog = false
-                            }
-                        )
-                        CustomButton(
-                            text = "Choisir depuis la galerie",
-                            onClick = {
-                                pickImageLauncher.launch("image/*")
-                                showSourceDialog = false
-                            }
-                        )
-                    }
-                },
-                confirmButton = {}
-            )
-        }
-
-        CustomButton(
-            text = "choisir une image",
-            onClick = { showImageSourceDialog() }
-        )
-
-        // Dialog pour entrer la description de l'image
-        if (showDescriptionDialog) {
-            DescriptionDialog(imageUri, imageDescription) { desc ->
-                imageDescription = desc
-                if (imageUri != null && imageDescription.isNotEmpty()) {
-                    viewModel.addImageWithDescription(imageUri!!, imageDescription)
-                    imageUri = null
-                    imageDescription = ""
-                }
-                showDescriptionDialog = false
-            }
-        }
-        DisplaySelectedImages(viewModel)
-    }
-
-    @Composable
-    fun CustomButton(text: String, onClick: () -> Unit) {
-        Button(
-            onClick = onClick,
-        ) {
-            Text(text, color = Color.Black)
-        }
-    }
-
-    @Composable
-    fun DescriptionDialog(
-        imageUri: Uri?,
-        initialDescription: String,
-        onConfirm: (String) -> Unit
-    ) {
-        var description by rememberSaveable { mutableStateOf(initialDescription) }
-
-        if (imageUri != null) {
-            AlertDialog(
-                onDismissRequest = {
-                },
-                title = { Text("Description de l'image") },
-                text = {
-                    TextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Entrez une description") }
-                    )
-                },
-                confirmButton = {
-                    Button(onClick = { onConfirm(description) }) {
-                        Text("Confirmer")
-                    }
-                }
-            )
-        }
-    }
-
-    @Composable
-    fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
-        val context = LocalContext.current
-        Column {
-            viewModel.imagesWithDescriptions.forEach { imageWithDescription ->
-
-                    imageWithDescription.imageUri
-
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = rememberImagePainter(imageWithDescription.imageUri),
-                        contentDescription = "Selected Image",
-                        modifier = Modifier.size(100.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(imageWithDescription.description)
-                    Spacer(Modifier.width(8.dp))
-                    IconButton(onClick = { viewModel.removeImageWithDescription(imageWithDescription) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
-                    }
-                }
-            }
-        }
-    }
-
-    private fun createImageFile(context: Context): File {
-        val timeStamp: String =
-            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        ).apply {
-
         }
     }
 }
+@Composable
+fun MainScreen(viewModel: RealEstateViewModel) {
+    val context = LocalContext.current
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
-
+    ModalNavigationDrawer(
+        drawerContent = { DrawerContent(onNavigate = { intent -> context.startActivity(intent) }) },
+        drawerState = drawerState
+    ) {
+        Scaffold(
+            topBar = {
+                ToolbarRealEstate(onMenuClick = {
+                    coroutineScope.launch {
+                        if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                    }
+                }, viewModel)
+            }
+        ) { padding ->
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                val realEstates by viewModel.realEstates.observeAsState(emptyList())
+                RealEstateListScreen(realEstates = realEstates)
+            }
+        }
+    }
+}
 
