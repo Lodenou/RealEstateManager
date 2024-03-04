@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Environment
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
@@ -116,40 +117,41 @@ class RealEstateActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // Initialisation de permissionLauncher
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                // La permission est accordée
+                // La permission a été accordée, continuez avec l'opération
                 setupContent()
             } else {
-                // La permission est refusée, afficher un message ou prendre une autre action
-                Toast.makeText(this, "Permission d'accès au stockage refusée.", Toast.LENGTH_LONG).show()
-                // Vous pourriez vouloir fermer l'activité ou désactiver certaines fonctionnalités ici
+                // La permission a été refusée, gérez le cas
+                Toast.makeText(this, "Permission required for app functionality", Toast.LENGTH_LONG).show()
             }
         }
 
-        // Check permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            //ask permission
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
-        } else {
-            // if permission granted set content
-            setupContent()
-        }
+        checkAndRequestPermissions()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+    private fun checkAndRequestPermissions() {
+        when {
+            Build.VERSION.SDK_INT <= Build.VERSION_CODES.S -> {
+                // Pour API 32 et inférieures, demandez READ_EXTERNAL_STORAGE et WRITE_EXTERNAL_STORAGE
+                val hasReadPermission = ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                val hasWritePermission = ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+
+                if (!hasReadPermission || !hasWritePermission) {
+                    permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                } else {
+                    setupContent()
+                }
+            }
+            else -> {
                 setupContent()
-            } else {
-                // La permission a été refusée, gérer le cas
-                // Par exemple, afficher un message ou fermer l'activité
             }
         }
     }
+
 
     private fun setupContent() {
         setContent {

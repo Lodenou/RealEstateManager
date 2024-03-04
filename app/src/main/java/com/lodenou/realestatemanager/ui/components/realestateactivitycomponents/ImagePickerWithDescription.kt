@@ -67,18 +67,20 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
         }
 
     // Préparer le launcher pour sélectionner une image
-    val pickImageLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
 
                 Log.d("ImagePicker", "URI Received: $uri")
-                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
                 try {
+
+                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
                     context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                    Log.d("ImagePicker", "Persistable permissions taken successfully")
+                    Log.d("ImagePicker", "Persistable read permission taken successfully for $uri")
                 } catch (e: Exception) {
-                    Log.e("ImagePicker", "Failed to take persistable permissions", e)
+                    Log.e("ImagePicker", "Failed to take persistable read permissions", e)
                 }
+
                 imageUri = it
                 showDescriptionDialog = true
             }
@@ -121,7 +123,7 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
                     CustomButton(
                         text = "Choisir depuis la galerie",
                         onClick = {
-                            pickImageLauncher.launch("image/*")
+                            pickImageLauncher.launch(arrayOf("image/*"))
                             showSourceDialog = false
                         }
                     )

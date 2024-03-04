@@ -110,9 +110,7 @@ fun RealEstateItem(realEstate: RealEstate) {
 
 
 fun copyImageToAppStorage(imageUri: Uri, context: Context): Uri? {
-    // Ici, insérez votre logique existante pour copier l'image dans le stockage de l'application
-    // et retourner le nouvel Uri de l'image copiée.
-    // Exemple simplifié (assurez-vous d'implémenter la gestion d'erreur appropriée) :
+
     val inputStream = context.contentResolver.openInputStream(imageUri) ?: return null
     val newFile = File(context.filesDir, "images/${System.currentTimeMillis()}.jpg").apply {
         parentFile?.mkdirs() // Assurez-vous que le dossier existe
