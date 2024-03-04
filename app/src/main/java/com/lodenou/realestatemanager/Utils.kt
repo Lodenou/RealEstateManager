@@ -19,11 +19,11 @@ import kotlin.math.roundToInt
 object Utils {
 
     fun convertDollarToEuro(dollars: Int): Int {
-        return (dollars * 0.812).roundToInt().toInt()
+        return (dollars * 0.812).roundToInt()
     }
 
     fun convertEuroToDollar(euros: Int): Int {
-        return (euros * 1.231).roundToInt().toInt()
+        return (euros * 1.231).roundToInt()
     }
 
     fun getTodayDate(): String {

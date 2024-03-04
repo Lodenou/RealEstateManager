@@ -28,7 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.lodenou.realestatemanager.R
-import com.lodenou.realestatemanager.activity.DetailActivity
+import com.lodenou.realestatemanager.ui.activity.DetailActivity
 import com.lodenou.realestatemanager.data.model.RealEstate
 import java.io.File
 import java.io.FileOutputStream

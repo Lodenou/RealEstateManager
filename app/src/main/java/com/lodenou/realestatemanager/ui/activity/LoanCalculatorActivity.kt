@@ -1,4 +1,4 @@
-package com.lodenou.realestatemanager.activity
+package com.lodenou.realestatemanager.ui.activity
 
 import android.app.Activity
 import android.content.Context

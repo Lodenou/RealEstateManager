@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.lodenou.realestatemanager.activity.LoanCalculatorActivity
+import com.lodenou.realestatemanager.ui.activity.LoanCalculatorActivity
 
 @Composable
 fun DrawerContent(onNavigate: (Intent) -> Unit) {

@@ -15,7 +15,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
-        <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES">
+        <uses-permission android:name="android.permission.WRITE_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.ACTION_OPEN_DOCUMENT">
 
         </uses-permission>
 
@@ -42,7 +43,7 @@
         </provider>
 
         <activity
-            android:name=".activity.RealEstateActivity"
+            android:name=".ui.activity.RealEstateActivity"
             android:exported="true"
             android:theme="@style/Theme.RealEstateManager">
             <intent-filter>
@@ -51,20 +52,18 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.LoanCalculatorActivity"
-            android:exported="true"
+            android:name=".ui.activity.LoanCalculatorActivity"
+            android:exported="false"
             android:theme="@style/Theme.RealEstateManager">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.DetailActivity"
-            android:exported="true"
+            android:name=".ui.activity.DetailActivity"
+            android:exported="false"
             android:theme="@style/Theme.RealEstateManager">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
