@@ -21,7 +21,8 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel) {
         viewModel.getRealEstateFromRoomById(realEstateId)
     }
 
-    val realEstate = viewModel.realEstate.observeAsState().value
+    val realEstate = viewModel.getRealEstateFromRoomById(realEstateId).observeAsState().value
+//    val realEstate = viewModel.realEstate.observeAsState().value
     val scrollState = rememberScrollState()
     val apiKey = BuildConfig.API_KEY
     val location = viewModel.location.observeAsState().value
