@@ -64,7 +64,9 @@ class DetailActivity : ComponentActivity() {
 
         setContent {
             RealEstateManagerTheme {
-                RealEstateDetailScreen(realEstateId, viewModel)
+                RealEstateDetailScreen(realEstateId, viewModel, onBackButtonClick = {
+                    finish()
+                })
             }
         }
     }
