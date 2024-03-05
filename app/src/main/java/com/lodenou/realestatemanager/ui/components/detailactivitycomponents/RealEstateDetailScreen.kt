@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.BuildConfig
 import com.lodenou.realestatemanager.R
+import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.data.model.RealEstate
 import com.lodenou.realestatemanager.ui.components.detailactivitycomponents.updaterealestate.CustomAlertDialogDetail
 import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
@@ -79,11 +80,7 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
                     IconButton(
                         onClick = {
                             onUpdateButtonClick(realEstate)
-                            CustomAlertDialogDetail(
-                                onDismiss = { showDialog = true  },
-                                realEstate = realEstate,
-                                detailViewModel = viewModel
-                            )
+                            showDialog = true
                         }
 
                     )
@@ -99,6 +96,7 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             )
             if (showDialog) {
+                loadImagesForRealEstate(realEstate, viewModel)
                CustomAlertDialogDetail(
                    onDismiss = { showDialog = false },
                    realEstate = realEstate,
@@ -142,5 +140,19 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
 
     } else {
         Text(text = "Chargement des détails du bien immobilier...")
+    }
+}
+fun loadImagesForRealEstate(realEstate: RealEstate, detailViewModel: DetailViewModel) {
+    detailViewModel.imagesWithDescriptionsDetail.clear()
+    // Supposer que realEstate a une liste d'images ou d'URLs d'images
+    val images = realEstate.images // C'est un exemple, adaptez-le à votre modèle de données
+
+    // Convertissez chaque URL en un objet ImageWithDescription et ajoutez-le à imagesWithDescriptionsDetail
+    images?.forEach { imageUrl ->
+        val imageWithDescription = ImageWithDescription(
+            imageUri = imageUrl.imageUri,
+            description = imageUrl.description
+        ) // Adaptez la création de l'objet selon vos besoins
+        detailViewModel.imagesWithDescriptionsDetail.add(imageWithDescription)
     }
 }

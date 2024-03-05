@@ -216,8 +216,12 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
                     // Save Object to room
                     realEstateViewModel.insert(realEstate)
 
-
                     onDismiss()
+                    Toast.makeText(
+                        context,
+                        "Vous avez bien ajouté un bien immobilier.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     Toast.makeText(
                         context,
@@ -230,7 +234,11 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
             }
         },
         dismissButton = {
-            Button(onClick = { onDismiss() }) {
+            Button(onClick = {
+                // clear image
+//                realEstateViewModel.imagesWithDescriptions.clear()
+                onDismiss()
+            }) {
                 Text("Annuler", color = Color.Black)
             }
         }

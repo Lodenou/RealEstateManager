@@ -38,6 +38,8 @@ fun ToolbarRealEstate(onMenuClick: () -> Unit, realEstateViewModel: RealEstateVi
     )
 
     if (showDialog) {
+        // clear image
+        realEstateViewModel.imagesWithDescriptions.clear()
         CustomAlertDialog(onDismiss = { showDialog = false }, realEstateViewModel)
     }
 }

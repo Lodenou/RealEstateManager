@@ -33,9 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
+import com.lodenou.realestatemanager.data.model.RealEstate
 import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
 import java.io.File
 import java.text.SimpleDateFormat
@@ -67,22 +69,23 @@ fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
         }
 
     // Préparer le launcher pour sélectionner une image
-    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        uri?.let {
-            Log.d("ImagePicker", "URI Received: $uri")
-            try {
+    val pickImageLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            uri?.let {
+                Log.d("ImagePicker", "URI Received: $uri")
+                try {
 
-                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                context.contentResolver.takePersistableUriPermission(uri, takeFlags)
-                Log.d("ImagePicker", "Persistable read permission taken successfully for $uri")
-            } catch (e: Exception) {
-                Log.e("ImagePicker", "Failed to take persistable read permissions", e)
+                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    Log.d("ImagePicker", "Persistable read permission taken successfully for $uri")
+                } catch (e: Exception) {
+                    Log.e("ImagePicker", "Failed to take persistable read permissions", e)
+                }
+
+                imageUri = it
+                showDescriptionDialog = true
             }
-
-            imageUri = it
-            showDescriptionDialog = true
         }
-    }
 
     // Demander la permission d'accès à la caméra
     val requestPermissionLauncher =
@@ -205,7 +208,10 @@ fun DisplaySelectedImages(viewModel: DetailViewModel) {
                     modifier = Modifier.size(100.dp)
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(imageWithDescription.description)
+                Text(imageWithDescription.description,
+                    modifier = Modifier.width(100.dp), // Ajustez selon vos besoins
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2)
                 Spacer(Modifier.width(8.dp))
                 IconButton(onClick = { viewModel.removeImageWithDescription(imageWithDescription) }) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete")
@@ -214,6 +220,8 @@ fun DisplaySelectedImages(viewModel: DetailViewModel) {
         }
     }
 }
+
+
 
 private fun createImageFile(context: Context): File {
     val timeStamp: String =

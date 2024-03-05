@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
@@ -205,7 +206,10 @@ fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
                     modifier = Modifier.size(100.dp)
                 )
                 Spacer(Modifier.width(8.dp))
-                Text(imageWithDescription.description)
+                Text(imageWithDescription.description,
+                    modifier = Modifier.width(100.dp),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2)
                 Spacer(Modifier.width(8.dp))
                 IconButton(onClick = { viewModel.removeImageWithDescription(imageWithDescription) }) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete")
