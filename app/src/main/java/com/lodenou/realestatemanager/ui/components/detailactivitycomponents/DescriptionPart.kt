@@ -16,14 +16,13 @@ fun DescriptionPart(descriptionText: String?) {
         Text(
             text = "Description",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White
+
         )
         Spacer(modifier = Modifier.padding(0.dp, 8.dp))
         if (descriptionText != null) {
             Text(
                 text = descriptionText,
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.White
             )
         }
     }

@@ -97,6 +97,13 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    // Mockito
+    testImplementation ("org.mockito:mockito-core:5.10.0")
+    // Coroutines Test
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+    //Robolectric
+    testImplementation ("org.robolectric:robolectric:4.11.1")
+
     // Room components
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")

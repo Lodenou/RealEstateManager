@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 fun DetailsSection(surface: Double?, numberOfRooms: Int?, location: String?) {
     Column(modifier = Modifier.padding(8.dp)) {
         InfoItemWithIcon(
-            icon = { Icon(Icons.Filled.Home, contentDescription = "Surface", tint = Color.White) },
+            icon = { Icon(Icons.Filled.Home, contentDescription = "Surface") },
             infoText = "Surface : ${surface}m²"
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -33,7 +33,6 @@ fun DetailsSection(surface: Double?, numberOfRooms: Int?, location: String?) {
                 Icon(
                     Icons.Filled.Person,
                     contentDescription = "Chambres",
-                    tint = Color.White
                 )
             },
             infoText = "Nombre de chambres : $numberOfRooms"
@@ -44,7 +43,6 @@ fun DetailsSection(surface: Double?, numberOfRooms: Int?, location: String?) {
                 Icon(
                     Icons.Filled.LocationOn,
                     contentDescription = "Localisation",
-                    tint = Color.White
                 )
             },
             infoText = "Localisation : $location"
@@ -58,7 +56,6 @@ fun InfoItemWithIcon(icon: @Composable () -> Unit, infoText: String) {
         Text(
             text = infoText,
             modifier = Modifier.padding(start = 8.dp),
-            color = Color.White,
             style = TextStyle(fontWeight = FontWeight.Bold)
         )
     }

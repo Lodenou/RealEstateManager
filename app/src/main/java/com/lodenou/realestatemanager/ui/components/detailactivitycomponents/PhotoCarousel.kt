@@ -32,7 +32,6 @@ fun PhotoCarousel(images: List<ImageWithDescription>?) {
             text = "Photos",
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White
         )
         LazyRow(modifier = Modifier.padding(horizontal = 8.dp)) {
             if (images != null) {

@@ -69,9 +69,7 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
     // Préparer le launcher pour sélectionner une image
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
-
                 Log.d("ImagePicker", "URI Received: $uri")
-
                 try {
 
                     val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
