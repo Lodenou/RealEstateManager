@@ -39,7 +39,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.ui.components.loancalculatoractivitycomponents.LoanCalculator
-import com.lodenou.realestatemanager.ui.theme.RealEstateManagerTheme
 import com.lodenou.realestatemanager.ui.viewmodel.LoanCalculatorViewModel
 import kotlin.math.pow
 
@@ -48,9 +47,9 @@ class LoanCalculatorActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val viewModel: LoanCalculatorViewModel by viewModels()
         setContent {
-            RealEstateManagerTheme {
+//            RealEstateManagerTheme {
                 LoanCalculator(viewModel)
-            }
+//            }
         }
     }
 }

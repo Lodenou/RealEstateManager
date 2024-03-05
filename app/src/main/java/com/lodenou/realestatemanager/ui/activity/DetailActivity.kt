@@ -47,7 +47,6 @@ import com.lodenou.realestatemanager.Utils.isInternetAvailable
 import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.ui.components.detailactivitycomponents.PhotoCarousel
 import com.lodenou.realestatemanager.ui.components.detailactivitycomponents.RealEstateDetailScreen
-import com.lodenou.realestatemanager.ui.theme.RealEstateManagerTheme
 import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.net.URLEncoder
