@@ -1,6 +1,8 @@
 package com.lodenou.realestatemanager.ui.viewmodel
 
+import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -30,6 +32,8 @@ class DetailViewModel @Inject constructor(
     val location: LiveData<Location?> = _location
 
     private val compositeDisposable = CompositeDisposable()
+
+    var imagesWithDescriptionsDetail = mutableStateListOf<ImageWithDescription>()
     /**
      * Retrieves a real estate property by its ID.
      */
@@ -61,5 +65,34 @@ class DetailViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear() // Clean sub when vm is destroyed
+    }
+
+    // update realestate
+
+    fun insert(realEstate: RealEstate) = viewModelScope.launch {
+        repository.insert(realEstate)
+    }
+
+    /**
+     * Launching a new coroutine to update the data in a non-blocking way.
+     */
+    fun update(realEstate: RealEstate) = viewModelScope.launch {
+        repository.update(realEstate)
+    }
+
+    /**
+     * Launching a new coroutine to delete the data in a non-blocking way.
+     */
+    fun delete(realEstate: RealEstate) = viewModelScope.launch {
+        repository.delete(realEstate)
+    }
+
+    fun addImageWithDescription(imageUri: Uri, description: String) {
+        val imageWithDescription = ImageWithDescription(imageUri.toString(), description)
+        imagesWithDescriptionsDetail.add(imageWithDescription)
+    }
+
+    fun removeImageWithDescription(imageWithDescription: ImageWithDescription) {
+        imagesWithDescriptionsDetail.remove(imageWithDescription)
     }
 }

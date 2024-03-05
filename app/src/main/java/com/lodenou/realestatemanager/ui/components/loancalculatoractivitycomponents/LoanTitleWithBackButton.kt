@@ -30,7 +30,7 @@ fun LoanTitleWithBackButton() {
         IconButton(
             onClick = { activity.finish() },
             colors = IconButtonDefaults.iconButtonColors(
-                contentColor = Color.White
+                contentColor = Color.Black
             )
         ) {
             Icon(

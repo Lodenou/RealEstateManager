@@ -62,13 +62,13 @@ class DetailActivity : ComponentActivity() {
         val realEstateId = intent.getStringExtra("realEstateId") ?: return
 
         setContent {
-//            RealEstateManagerTheme {
                 RealEstateDetailScreen(realEstateId, viewModel, onBackButtonClick = {
                     finish()
-                })
-//            }
+                }, onUpdateButtonClick = { //TODO
+                 })
         }
     }
+
 }
 
 
