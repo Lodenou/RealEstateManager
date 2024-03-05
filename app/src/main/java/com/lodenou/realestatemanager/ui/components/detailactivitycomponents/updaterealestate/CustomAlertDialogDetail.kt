@@ -1,4 +1,4 @@
-package com.lodenou.realestatemanager.ui.components.realestateactivitycomponents
+package com.lodenou.realestatemanager.ui.components.detailactivitycomponents.updaterealestate
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -23,58 +23,58 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.data.model.RealEstate
-import com.lodenou.realestatemanager.ui.viewmodel.RealEstateViewModel
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomDatePicker
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomDropdownMenu
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.ImagePickerWithDescription
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.PointsOfInterestDropdownMenu
+import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
 import java.time.LocalDate
 import java.util.UUID
 
 @Composable
-fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateViewModel) {
+fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detailViewModel: DetailViewModel) {
 
     val context = LocalContext.current
 
 
-    var type by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf(realEstate.type.toString()) }
     val types = listOf("Maison", "Appartement", "Loft")
-    var price by remember { mutableStateOf("") }
-    var area by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf(realEstate.price.toString()) }
+    var area by remember { mutableStateOf(realEstate.area.toString()) }
 
 
-    var numberOfRooms by remember { mutableStateOf("") }
+    var numberOfRooms by remember { mutableStateOf(realEstate.numberOfRooms.toString()) }
     val rooms = listOf("1", "2", "3", "4", "5", "6")
 
-
-    var description by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf(realEstate.description.toString()) }
+    var address by remember { mutableStateOf(realEstate.address.toString()) }
 
     // point of interest
     val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant")
-    var selectedPointsOfInterest by remember { mutableStateOf(listOf<String>()) }
+    var selectedPointsOfInterest by remember { mutableStateOf(realEstate.pointsOfInterest) }
 
-    // Une fonction pour gérer la sélection/désélection
     val onPointOfInterestSelected: (String, Boolean) -> Unit = { point, isSelected ->
         selectedPointsOfInterest = if (isSelected) {
-            // Ajouter le point à la liste s'il est sélectionné
-            selectedPointsOfInterest + point
+            selectedPointsOfInterest?.plus(point)
         } else {
-            // Retirer le point de la liste s'il est désélectionné
-            selectedPointsOfInterest - point
+            selectedPointsOfInterest?.minus(point)
         }
     }
 
-    var status by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf(realEstate.status.toString()) }
     val statuses = listOf("Disponible", "Vendu")
 
-    var marketEntryDate by remember { mutableStateOf(LocalDate.now()) }
-    var saleDate by remember { mutableStateOf<LocalDate?>(null) }
+    var marketEntryDate by remember { mutableStateOf(realEstate.marketEntryDate) }
+    var saleDate by remember { mutableStateOf<LocalDate?>(realEstate.saleDate) }
 
-    var realEstateAgentName by remember { mutableStateOf("") }
+    var realEstateAgentName by remember { mutableStateOf(realEstate.realEstateAgent.toString()) }
 
 
     val isFormValid =
-        type.isNotEmpty() && price.isNotEmpty() && area.isNotEmpty() && numberOfRooms.isNotEmpty() &&
-                description.isNotEmpty() && address.isNotEmpty() && status.isNotEmpty() &&
-                marketEntryDate != null && realEstateAgentName.isNotEmpty()
+        type.isNotEmpty()  && price.isNotEmpty() && area.isNotEmpty() && numberOfRooms.isNotEmpty() &&
+                description.isNotEmpty() && address.isNotEmpty() && status.isNotEmpty() && realEstateAgentName.isNotEmpty()
 
     AlertDialog(
         onDismissRequest = { },
@@ -88,7 +88,7 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
             ) {
 
 
-                ImagePickerWithDescription(viewModel = realEstateViewModel)
+                ImagePickerWithDescriptionDetail(viewModel = detailViewModel)
 
                 CustomDropdownMenu(
                     options = types,
@@ -153,7 +153,7 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
 
                 PointsOfInterestDropdownMenu(
                     pointsOfInterest = allPointsOfInterest,
-                    selectedPointsOfInterest = selectedPointsOfInterest,
+                    selectedPointsOfInterest = selectedPointsOfInterest.orEmpty(),
                     onPointOfInterestSelected = onPointOfInterestSelected,
                     shape = RoundedCornerShape(30.dp)
                 )
@@ -167,7 +167,7 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
 
                 CustomDatePicker(
                     value = marketEntryDate,
-                    onValueChange = { marketEntryDate = it },
+                    onValueChange = { marketEntryDate = it!! },
                     label = "Date de mise sur le marché",
                     defaultText = ""
                 )
@@ -194,15 +194,15 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
         confirmButton = {
             Button(onClick = {
                 if (isFormValid) {
-                    val realEstate = RealEstate(
+                    val realEstateUpdated = RealEstate(
                         // create random id to avoid pb linked to auto-generated room id or document id from firestore
-                        id = UUID.randomUUID().toString(),
+                        id = realEstate.id,
                         type = type,
                         price = price.toDoubleOrNull(),
                         area = area.toDoubleOrNull(),
                         numberOfRooms = numberOfRooms.toIntOrNull(),
                         description = description,
-                        images = realEstateViewModel.imagesWithDescriptions, // vm list used here
+                        images = detailViewModel.imagesWithDescriptionsDetail, // vm list used here
                         address = address,
                         pointsOfInterest = selectedPointsOfInterest,
                         status = status,
@@ -213,15 +213,12 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
                         )
 
 
+
                     // Save Object to room
-                    realEstateViewModel.insert(realEstate)
+//                    detailViewModel.insert(realEstateUpdated)
+                    detailViewModel.update(realEstateUpdated)
 
                     onDismiss()
-                    Toast.makeText(
-                        context,
-                        "Vous avez bien ajouté un bien immobilier.",
-                        Toast.LENGTH_SHORT
-                    ).show()
                 } else {
                     Toast.makeText(
                         context,
@@ -234,13 +231,10 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
             }
         },
         dismissButton = {
-            Button(onClick = {
-                // clear image
-//                realEstateViewModel.imagesWithDescriptions.clear()
-                onDismiss()
-            }) {
+            Button(onClick = { onDismiss() }) {
                 Text("Annuler", color = Color.Black)
             }
         }
     )
 }
+

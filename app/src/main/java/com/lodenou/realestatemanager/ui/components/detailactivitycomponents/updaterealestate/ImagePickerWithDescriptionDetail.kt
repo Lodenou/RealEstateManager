@@ -1,4 +1,4 @@
-package com.lodenou.realestatemanager.ui.components.realestateactivitycomponents
+package com.lodenou.realestatemanager.ui.components.detailactivitycomponents.updaterealestate
 
 import android.Manifest
 import android.content.Context
@@ -37,21 +37,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.rememberImagePainter
-import com.lodenou.realestatemanager.ui.viewmodel.RealEstateViewModel
+import com.lodenou.realestatemanager.data.model.RealEstate
+import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
+fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var showDescriptionDialog by remember { mutableStateOf(false) }
     var imageDescription by remember { mutableStateOf("") }
     var showSourceDialog by remember { mutableStateOf(false) }
 
-    // Création d'une Uri pour stocker l'image prise par la caméra
+
     val photoUri = remember {
         mutableStateOf<Uri?>(null)
     }
@@ -68,7 +69,8 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
         }
 
     // Préparer le launcher pour sélectionner une image
-    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+    val pickImageLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
                 Log.d("ImagePicker", "URI Received: $uri")
                 try {
@@ -191,10 +193,10 @@ fun DescriptionDialog(
 }
 
 @Composable
-fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
+fun DisplaySelectedImages(viewModel: DetailViewModel) {
     val context = LocalContext.current
     Column {
-        viewModel.imagesWithDescriptions.forEach { imageWithDescription ->
+        viewModel.imagesWithDescriptionsDetail.forEach { imageWithDescription ->
 
             imageWithDescription.imageUri
 
@@ -207,7 +209,7 @@ fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(imageWithDescription.description,
-                    modifier = Modifier.width(100.dp),
+                    modifier = Modifier.width(100.dp), // Ajustez selon vos besoins
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2)
                 Spacer(Modifier.width(8.dp))
@@ -218,6 +220,8 @@ fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
         }
     }
 }
+
+
 
 private fun createImageFile(context: Context): File {
     val timeStamp: String =

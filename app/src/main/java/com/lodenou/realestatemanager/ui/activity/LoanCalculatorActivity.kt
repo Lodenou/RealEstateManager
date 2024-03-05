@@ -47,9 +47,7 @@ class LoanCalculatorActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val viewModel: LoanCalculatorViewModel by viewModels()
         setContent {
-//            RealEstateManagerTheme {
                 LoanCalculator(viewModel)
-//            }
         }
     }
 }

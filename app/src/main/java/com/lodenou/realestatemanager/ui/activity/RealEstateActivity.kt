@@ -49,9 +49,6 @@ class RealEstateActivity : ComponentActivity() {
 
     private val viewModel: RealEstateViewModel by viewModels()
 
-    companion object {
-        private const val PERMISSION_REQUEST_CODE = 101
-    }
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
 
 

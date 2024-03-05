@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -20,7 +21,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -28,11 +33,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.BuildConfig
 import com.lodenou.realestatemanager.R
+import com.lodenou.realestatemanager.data.model.ImageWithDescription
+import com.lodenou.realestatemanager.data.model.RealEstate
+import com.lodenou.realestatemanager.ui.components.detailactivitycomponents.updaterealestate.CustomAlertDialogDetail
 import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onBackButtonClick: ()-> Unit) {
+fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onBackButtonClick: ()-> Unit, onUpdateButtonClick: (realestate : RealEstate) -> Unit) {
     LaunchedEffect(realEstateId) {
         viewModel.getRealEstateFromRoomById(realEstateId)
     }
@@ -41,9 +49,9 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
     val scrollState = rememberScrollState()
     val apiKey = BuildConfig.API_KEY
     val location = viewModel.location.observeAsState().value
+    var showDialog by remember { mutableStateOf(false) }
 
     if (realEstate != null) {
-
         Scaffold(topBar = {
             TopAppBar(
                 title = {
@@ -54,6 +62,7 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
                         maxLines = 1
                     )
                 },
+
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -67,8 +76,33 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
                         )
                     }
                 },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            onUpdateButtonClick(realEstate)
+                            showDialog = true
+                        }
+
+                    )
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Create,
+                            contentDescription = stringResource(id = R.string.app_name),
+                            tint = Color.Black
+                        )
+                    }
+                },
+
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             )
+            if (showDialog) {
+                loadImagesForRealEstate(realEstate, viewModel)
+               CustomAlertDialogDetail(
+                   onDismiss = { showDialog = false },
+                   realEstate = realEstate,
+                   detailViewModel = viewModel
+               )
+            }
         }
 
         )
@@ -106,5 +140,19 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
 
     } else {
         Text(text = "Chargement des détails du bien immobilier...")
+    }
+}
+fun loadImagesForRealEstate(realEstate: RealEstate, detailViewModel: DetailViewModel) {
+    detailViewModel.imagesWithDescriptionsDetail.clear()
+    // Supposer que realEstate a une liste d'images ou d'URLs d'images
+    val images = realEstate.images // C'est un exemple, adaptez-le à votre modèle de données
+
+    // Convertissez chaque URL en un objet ImageWithDescription et ajoutez-le à imagesWithDescriptionsDetail
+    images?.forEach { imageUrl ->
+        val imageWithDescription = ImageWithDescription(
+            imageUri = imageUrl.imageUri,
+            description = imageUrl.description
+        ) // Adaptez la création de l'objet selon vos besoins
+        detailViewModel.imagesWithDescriptionsDetail.add(imageWithDescription)
     }
 }

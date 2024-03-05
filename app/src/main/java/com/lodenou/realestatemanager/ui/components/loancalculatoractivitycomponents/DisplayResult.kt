@@ -31,7 +31,6 @@ fun DisplayResult(result: Float?) {
                     modifier = Modifier.width(150.dp)
                 )
             }
-
         }
     }
 }
