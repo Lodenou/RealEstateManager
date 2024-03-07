@@ -11,7 +11,6 @@ plugins {
 }
 
 
-
 android {
     namespace = "com.lodenou.realestatemanager"
     compileSdk = 34
@@ -35,9 +34,10 @@ android {
 
             val apiKey = localProperties.getProperty("API_KEY")
             if (apiKey != null) {
-                defaultConfig {
+
                     buildConfigField("String", "API_KEY", "\"$apiKey\"")
-                }
+                    resValue("string", "MAPS_API_KEY", localProperties.getProperty("API_KEY"))
+
             } else {
                 throw GradleException("API_KEY not set in local.properties.")
             }
@@ -75,6 +75,8 @@ android {
     }
 }
 
+
+
 dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
@@ -100,7 +102,7 @@ dependencies {
     // Mockito
     testImplementation ("org.mockito:mockito-core:5.10.0")
     // Coroutines Test
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     //Robolectric
     testImplementation ("org.robolectric:robolectric:4.11.1")
 
@@ -124,7 +126,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
     //  Kotlin coroutines with Room
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     // GSON
     implementation ("com.google.code.gson:gson:2.10.1")
@@ -170,4 +172,11 @@ dependencies {
 
     // Coil
     implementation("io.coil-kt:coil-compose:1.4.0")
+
+    // Map sdk for android
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
+    implementation ("com.google.android.gms:play-services-location:21.2.0")
+    implementation ("com.google.maps.android:maps-compose:4.3.3")
+    implementation ("com.google.maps.android:maps-compose-utils:4.3.3")
+    implementation ("com.google.android.gms:play-services-tasks:18.1.0")
 }

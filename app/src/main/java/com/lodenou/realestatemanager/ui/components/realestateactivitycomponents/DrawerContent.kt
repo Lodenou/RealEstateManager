@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.ui.activity.LoanCalculatorActivity
+import com.lodenou.realestatemanager.ui.activity.MapActivity
 
 @Composable
 fun DrawerContent(onNavigate: (Intent) -> Unit) {
@@ -29,6 +30,12 @@ fun DrawerContent(onNavigate: (Intent) -> Unit) {
             onNavigate(Intent(context, LoanCalculatorActivity::class.java))
         }) {
             Text("Calculateur de prêt immobilier")
+        }
+
+        TextButton(onClick = {
+            onNavigate(Intent(context, MapActivity::class.java))
+        }) {
+            Text("Map")
         }
     }
 }

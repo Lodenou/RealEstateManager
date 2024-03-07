@@ -1,6 +1,5 @@
 package com.lodenou.realestatemanager.ui.viewmodel
 
-import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
@@ -17,7 +16,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RealEstateViewModel @Inject constructor(
-    private val appContext: Context,
     private val repository: RealEstateRepository
 ) : ViewModel() {
 
@@ -38,9 +36,6 @@ class RealEstateViewModel @Inject constructor(
             _realEstates.value = realEstatesFromRoom
         }
     }
-
-
-    val allRealEstates: LiveData<List<RealEstate>> = repository.allRealEstates.asLiveData()
 
     /**
      * Launching a new coroutine to insert the data in a non-blocking way.
@@ -79,10 +74,5 @@ class RealEstateViewModel @Inject constructor(
     fun removeImageWithDescription(imageWithDescription: ImageWithDescription) {
         imagesWithDescriptions.remove(imageWithDescription)
     }
-
-    fun addNewRealEstate(realEstate: RealEstate) = viewModelScope.launch {
-        repository.insert(realEstate) // insert in Room
-    }
-
 
 }
