@@ -28,6 +28,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
+import androidx.lifecycle.Observer
 import java.time.LocalDate
 
 @HiltViewModel
@@ -44,38 +45,20 @@ class MapViewModel @Inject constructor(
     private val _realEstatesWithLatLng = MutableLiveData<List<RealEstateWithLatLng>>()
     val realEstatesWithLatLng: LiveData<List<RealEstateWithLatLng>> = _realEstatesWithLatLng
 
-    private val _realEstates = MediatorLiveData<List<RealEstate>>()
+    private val _realEstates = MutableLiveData<List<RealEstate>>()
     val realEstates: LiveData<List<RealEstate>> = _realEstates
+    private var realEstatesObserver: Observer<List<RealEstate>>? = null
 
     init {
         observeLocalRealEstates()
-
-        _realEstatesWithLatLng.value = listOf(
-            RealEstateWithLatLng(
-                RealEstate(
-                    id = "1",
-                    type = "Maison",
-                    price = 300000.0,
-                    area = 120.0,
-                    numberOfRooms = 5,
-                    description = "Une belle maison avec vue sur mer",
-                    images = listOf(), // Assurez-vous d'avoir une liste d'images ou laissez-la vide si votre classe ImageWithDescription est bien définie ailleurs.
-                    address = "123 Main St, Ville, Pays",
-                    pointsOfInterest = listOf("École", "Parc", "Supermarché"),
-                    status = "À vendre",
-                    marketEntryDate = LocalDate.now(),
-                    saleDate = null,
-                    realEstateAgent = "Agent Immobilier"
-                ),
-                LatLng(48.8134, 2.5521)
-            )
-        )
     }
 
 
     private fun convertAddressesToLatLng(realEstates: List<RealEstate>) {
+        Log.e("MapViewModel", "convertAddressesToLatLng 1")
             val disposable = Observable.fromIterable(realEstates)
                 .flatMap { realEstate ->
+                    Log.e("MapViewModel", "convertAddressesToLatLng 2")
                     repository.getLatLngFromAddress(realEstate.address ?: "")
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -86,9 +69,11 @@ class MapViewModel @Inject constructor(
                             } else {
                                 LatLng(0.0, 0.0) // Fournir une valeur par défaut si la lat ou lng est null
                             }
+                            Log.e("MapViewModel", "convertAddressesToLatLng $latLng")
                             RealEstateWithLatLng(realEstate, latLng)
+
                         }
-                        .onErrorReturnItem(RealEstateWithLatLng(realEstate, LatLng(0.0, 0.0))) // Gérer l'erreur
+                        .onErrorReturnItem(RealEstateWithLatLng(realEstate, LatLng(0.0, 0.0)))
                 }
                 .toList()
                 .subscribe({ realEstateWithLatLngList ->
@@ -99,18 +84,31 @@ class MapViewModel @Inject constructor(
             compositeDisposable.add(disposable)
     }
 
+//    override fun onCleared() {
+//        super.onCleared()
+//        compositeDisposable.clear() // Clean sub when vm is destroyed
+//    }
+//
+//    private fun observeLocalRealEstates() {
+//        repository.allRealEstates.asLiveData().observeForever { realEstatesFromRoom ->
+//            Log.e("MapViewModel", "Got real estates from room: ${realEstatesFromRoom.size}")
+//            convertAddressesToLatLng(realEstatesFromRoom)
+//        }
+//    }
+private fun observeLocalRealEstates() {
+    realEstatesObserver = Observer { realEstatesFromRoom ->
+        _realEstates.value = realEstatesFromRoom
+        convertAddressesToLatLng(realEstatesFromRoom)
+    }
+    repository.allRealEstates.asLiveData().observeForever(realEstatesObserver!!)
+}
     override fun onCleared() {
         super.onCleared()
-        compositeDisposable.clear() // Clean sub when vm is destroyed
-    }
-
-    private fun observeLocalRealEstates() {
-        // Source Room
-        val roomSource = repository.allRealEstates.asLiveData()
-        _realEstates.addSource(roomSource) { realEstatesFromRoom ->
-            _realEstates.value = realEstatesFromRoom
-            convertAddressesToLatLng(realEstatesFromRoom)
+        // clear observer forever to avoid memory leaks
+        realEstatesObserver?.let { observer ->
+            repository.allRealEstates.asLiveData().removeObserver(observer)
         }
+        compositeDisposable.clear()
     }
 
 

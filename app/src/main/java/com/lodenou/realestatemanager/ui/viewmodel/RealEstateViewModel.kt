@@ -3,7 +3,8 @@ package com.lodenou.realestatemanager.ui.viewmodel
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
@@ -20,9 +21,10 @@ class RealEstateViewModel @Inject constructor(
 ) : ViewModel() {
 
     var imagesWithDescriptions = mutableStateListOf<ImageWithDescription>()
+    private var realEstatesObserver: Observer<List<RealEstate>>? = null
 
-    //    private val _realEstates = MutableLiveData<List<RealEstate>>()
-    private val _realEstates = MediatorLiveData<List<RealEstate>>()
+
+    private val _realEstates = MutableLiveData<List<RealEstate>>()
     val realEstates: LiveData<List<RealEstate>> = _realEstates
 
     init {
@@ -30,13 +32,19 @@ class RealEstateViewModel @Inject constructor(
     }
 
     private fun observeLocalRealEstates() {
-        // Source Room
-        val roomSource = repository.allRealEstates.asLiveData()
-        _realEstates.addSource(roomSource) { realEstatesFromRoom ->
+        realEstatesObserver = Observer { realEstatesFromRoom ->
             _realEstates.value = realEstatesFromRoom
         }
+        repository.allRealEstates.asLiveData().observeForever(realEstatesObserver!!)
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        // Retirer l'observateur
+        realEstatesObserver?.let { observer ->
+            repository.allRealEstates.asLiveData().removeObserver(observer)
+        }
+    }
     /**
      * Launching a new coroutine to insert the data in a non-blocking way.
      */

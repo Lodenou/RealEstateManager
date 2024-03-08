@@ -89,7 +89,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.3")
     implementation("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -98,6 +98,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
     // Mockito
     testImplementation ("org.mockito:mockito-core:5.10.0")
@@ -116,12 +117,12 @@ dependencies {
     testImplementation("androidx.room:room-testing:2.6.1")
 
     // Jetpack Compose Integration
-    implementation("androidx.compose.ui:ui:1.6.2")
-    implementation("androidx.compose.ui:ui-tooling:1.6.2")
+    implementation("androidx.compose.ui:ui:1.6.3")
+    implementation("androidx.compose.ui:ui-tooling:1.6.3")
     implementation("androidx.activity:activity-compose:1.8.2")
 
     // LiveData integration with Compose
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.2")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.3")
     // LiveData
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 

@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.room.Room
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -47,6 +48,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 import com.lodenou.realestatemanager.data.model.RealEstate
+import com.lodenou.realestatemanager.data.repository.RealEstateRepository
 import com.lodenou.realestatemanager.ui.viewmodel.MapViewModel
 
 import dagger.hilt.android.AndroidEntryPoint
@@ -123,9 +125,10 @@ fun RealEstateMap(mapViewModel: MapViewModel) {
                 "MarkerData",
                 "Real estate: ${realEstate.realEstate.status}, LatLng: ${realEstate.latLng}"
             )
+
             Marker(
                 state = MarkerState(position = realEstate.latLng),
-                title = realEstate.realEstate.status, // Assurez-vous que RealEstate a un champ `name`
+                title = realEstate.realEstate.status,
                 snippet = "Marker for ${realEstate.realEstate.status}",
                 onClick = {
                     val intent = Intent(context, DetailActivity::class.java).apply {
