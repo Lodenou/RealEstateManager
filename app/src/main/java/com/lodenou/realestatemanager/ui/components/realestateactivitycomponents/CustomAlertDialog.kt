@@ -51,7 +51,7 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
     var address by remember { mutableStateOf("") }
 
     // point of interest
-    val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant")
+    val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant", "école", "commerces")
     var selectedPointsOfInterest by remember { mutableStateOf(listOf<String>()) }
 
     // Une fonction pour gérer la sélection/désélection

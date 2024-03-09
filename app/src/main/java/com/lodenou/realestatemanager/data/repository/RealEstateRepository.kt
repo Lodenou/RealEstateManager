@@ -48,4 +48,22 @@ class RealEstateRepository @Inject constructor(
     fun getLatLngFromAddress(address: String): Observable<GeocodeResult> {
         return RealestateApi.retrofitService.getLatLngFromAddress(address, BuildConfig.API_KEY)
     }
+
+    //     fun allSearchRealEstates(minPrice: Double?,
+//                              maxPrice: Double?,
+//                              minArea: Double?,
+//                              maxArea: Double?,
+//                              startDate: String,
+//                              endDate: String,
+//                              interests: String?) {
+//        realEstateDao.searchRealEstate(minPrice,maxPrice, minArea, maxArea,startDate,endDate, interests)
+//    }
+    fun allSearchRealEstates(
+        minPrice: Double?,
+        maxPrice: Double?,
+        minArea: Double?,
+        maxArea: Double?,
+    ) {
+        realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea)
+    }
 }

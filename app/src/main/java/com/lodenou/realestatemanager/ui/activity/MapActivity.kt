@@ -67,7 +67,7 @@ class MapActivity : ComponentActivity(), OnMapReadyCallback {
     }
 
     override fun onMapReady(p0: GoogleMap) {
-        TODO("Not yet implemented")
+
     }
 
 
@@ -99,7 +99,7 @@ fun RealEstateMap(mapViewModel: MapViewModel) {
     val realEstatesWithLatLng by mapViewModel.realEstatesWithLatLng.observeAsState(initial = emptyList())
 
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 20f) // Valeur initiale
+        position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 20f)
     }
 
     LaunchedEffect(userLocation) {

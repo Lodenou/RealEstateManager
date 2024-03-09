@@ -84,17 +84,6 @@ class MapViewModel @Inject constructor(
             compositeDisposable.add(disposable)
     }
 
-//    override fun onCleared() {
-//        super.onCleared()
-//        compositeDisposable.clear() // Clean sub when vm is destroyed
-//    }
-//
-//    private fun observeLocalRealEstates() {
-//        repository.allRealEstates.asLiveData().observeForever { realEstatesFromRoom ->
-//            Log.e("MapViewModel", "Got real estates from room: ${realEstatesFromRoom.size}")
-//            convertAddressesToLatLng(realEstatesFromRoom)
-//        }
-//    }
 private fun observeLocalRealEstates() {
     realEstatesObserver = Observer { realEstatesFromRoom ->
         _realEstates.value = realEstatesFromRoom

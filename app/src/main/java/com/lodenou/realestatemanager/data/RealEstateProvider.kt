@@ -23,7 +23,6 @@ class RealEstateProvider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor? {
-        // Exemple : Accéder à tous les biens immobiliers
         val cursor = MatrixCursor(arrayOf("id", "word", "type", "price", "area", "numberOfRooms",
             "description", "images", "address", "pointsOfInterest", "status", "marketEntryDate", "saleDate", "realEstateAgent"))
         val realEstates = realEstateDao?.getAllRealEstates()?.asLiveData()?.value

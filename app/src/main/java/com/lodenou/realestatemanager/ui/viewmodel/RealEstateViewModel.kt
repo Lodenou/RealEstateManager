@@ -40,7 +40,7 @@ class RealEstateViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        // Retirer l'observateur
+        // remove observer
         realEstatesObserver?.let { observer ->
             repository.allRealEstates.asLiveData().removeObserver(observer)
         }

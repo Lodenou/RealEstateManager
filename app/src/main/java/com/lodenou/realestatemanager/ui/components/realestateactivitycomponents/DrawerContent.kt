@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -32,10 +33,13 @@ fun DrawerContent(onNavigate: (Intent) -> Unit) {
             Text("Calculateur de prêt immobilier")
         }
 
-        TextButton(onClick = {
-            onNavigate(Intent(context, MapActivity::class.java))
-        }) {
-            Text("Map")
+        TextButton(
+            onClick = {
+                onNavigate(Intent(context, MapActivity::class.java))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Map", modifier = Modifier.fillMaxWidth())
         }
     }
 }
