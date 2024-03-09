@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +60,7 @@ import java.time.format.DateTimeParseException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ToolbarRealEstate(onMenuClick: () -> Unit, realEstateViewModel: RealEstateViewModel) {
+fun ToolbarRealEstate(onMenuClick: () -> Unit, realEstateViewModel: RealEstateViewModel, searchViewModel : SearchViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
     TopAppBar(
@@ -92,26 +94,26 @@ fun ToolbarRealEstate(onMenuClick: () -> Unit, realEstateViewModel: RealEstateVi
                 // Par exemple, afficher les critères de recherche dans la console
                 println("Critères de recherche: $criteria")
                 // Ou appeler une fonction de votre ViewModel pour effectuer la recherche
-            }
+            }, searchViewModel
         )
     }
 }
 
 
 @Composable
-fun SearchCriteriaDialog(onDismiss: () -> Unit, onSearch: (SearchCriteria) -> Unit) {
+fun SearchCriteriaDialog(onDismiss: () -> Unit, onSearch: (SearchCriteria) -> Unit, searchViewModel : SearchViewModel) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Recherche multi-critères") },
         text = {
             SearchCriteriaForm(onSearchCriteriaChanged = { criteria ->
                 onSearch(criteria)
-                onDismiss() // Utilisez onDismiss pour fermer le dialogue
-            })
+                onDismiss()
+            },searchViewModel )
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { // Utilisez onDismiss pour fermer le dialogue
+            TextButton(onClick = onDismiss) {
                 Text("Annuler")
             }
         }
@@ -119,132 +121,87 @@ fun SearchCriteriaDialog(onDismiss: () -> Unit, onSearch: (SearchCriteria) -> Un
 }
 
 @Composable
-fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, searchViewModel : SearchViewModel) {
-    // Initialisation des états pour les différents critères
+fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, searchViewModel: SearchViewModel) {
+    // Scroll state pour la colonne scrollable
+    val scrollState = rememberScrollState()
+
+    Column(modifier = Modifier
+        .verticalScroll(scrollState)
+        .padding(16.dp)) {
+
+        var areaMin by searchViewModel.minArea
+        var areaMax by searchViewModel.maxArea
+        var priceMin by searchViewModel.minPrice
+        var priceMax by searchViewModel.maxPrice
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = if (areaMin == 0) "" else areaMin.toString(),
+                onValueChange = { newValue ->
+                    areaMin = newValue.toIntOrNull() ?: 0
+                },
+                label = { Text("Surface min (m²)") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = if (areaMax== 0) "" else areaMax.toString(),
+                onValueChange = { newValue ->
+                    areaMax = newValue.toIntOrNull() ?: 0
+                },
+                label = { Text("Surface max (m²)") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = if (priceMin == 0) "" else priceMin.toString(),
+                onValueChange = { newValue ->
+                    priceMin = newValue.toIntOrNull() ?: 0
+                },
+                label = { Text("Prix min") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = if (priceMax == 0) "" else priceMax.toString(),
+                onValueChange = { newValue ->
+                    priceMax = newValue.toIntOrNull() ?: 0
+                },
+                label = { Text("Prix max") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
 
 
+        // Ajoutez ici d'autres éléments du formulaire si nécessaire...
 
-//    var areaRange by remember { mutableStateOf(0f..300f) }
-//    var priceRange by remember { mutableStateOf(0f..2000000f) }
-//    var nearLocation by remember { mutableStateOf(false) }
-//    var nearShops by remember { mutableStateOf(false) }
-//    var onMarketSince by remember { mutableStateOf(LocalDate.now()) }
-
-    var areaRange by remember {
-        mutableStateOf(
-            searchViewModel.minarea.doubleValue.toFloat() ?: 0f..searchViewModel.maxarea.doubleValue.toFloat() ?: 500f
-        )
-    }
-    var priceRange by remember {
-        mutableStateOf(
-            searchViewModel.minprice.doubleValue.toFloat() ?: 0f..searchViewModel.maxprice.doubleValue.toFloat() ?: 2000000f
-        )
-    }
-
-
-    RangeSlider(
-        value = areaRange,
-        onValueChange = { newValue ->
-            areaRange = newValue
-            searchViewModel.minarea = newValue.start.toDouble()
-            searchViewModel.maxarea = newValue.endInclusive.toDouble()
-        },
-        valueRange = 0f..500f
-    )
-
-    Spacer(Modifier.height(8.dp))
-
-    RangeSlider(
-        value = priceRange,
-        onValueChange = { newValue ->
-            priceRange = newValue
-            searchViewModel.minprice = newValue.start.toDouble()
-            searchViewModel.maxprice = newValue.endInclusive.toDouble()
-        },
-        valueRange = 0f..2000000f
-    )
-
-//    var selectedOption by remember { mutableStateOf(DateOption.WEEK) }
-
-//    var startDate by remember { mutableStateOf("") }
-//    var endDate by remember { mutableStateOf("") }
-//    var showError by remember { mutableStateOf(false) }
-//
-//    val categories = listOf("Parc", "Musée", "Cinéma", "Restaurant", "École", "Commerces")
-//    val categoryStates = remember { mutableStateMapOf<String, Boolean>().apply { categories.forEach { put(it, false) } } }
-
-
-//    Column(modifier = Modifier
-//        .padding(16.dp)
-//        .verticalScroll(rememberScrollState())) {
-//        // Exemples de composants pour les critères
-//        Text("Surface (m²): ${areaRange.start.toInt()} - ${areaRange.endInclusive.toInt()}")
-//        RangeSlider(
-//            value = areaRange,
-//            onValueChange = { areaRange = it },
-//            valueRange = 0f..500f,
-//            steps = 0
-//        )
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        Column {
-//            Text("Prix: \$${priceRange.start.toInt()} - \$${priceRange.endInclusive.toInt()}")
-//
-//            RangeSlider(
-//                value = priceRange,
-//                onValueChange = { newRange ->
-//                    priceRange = newRange.start.coerceIn(0f..2000000f)..newRange.endInclusive.coerceIn(0f..20000000f)
-//                },
-//                valueRange = 0f..2000000f,
-//                steps = 10000
-//            )
-//        }
-
-
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-//        categories.forEach { category ->
-//            Row(verticalAlignment = Alignment.CenterVertically) {
-//                Checkbox(
-//                    checked = categoryStates[category] ?: false,
-//                    onCheckedChange = { isChecked ->
-//                        categoryStates[category] = isChecked
-//                    }
-//                )
-//                Text(category)
-//            }
-//        }
-//
-//        DateInputField(
-//            label = "Date de début",
-//            value = startDate,
-//            onValueChange = { startDate = it }
-//        )
-//
-//        Spacer(Modifier.height(8.dp))
-//
-//        DateInputField(
-//            label = "Date de fin",
-//            value = endDate,
-//            onValueChange = { endDate = it }
-//        )
-//
-//        if (showError) {
-//            Text("Format de date invalide. Veuillez utiliser le format JJ/MM/AAAA.", color = MaterialTheme.colorScheme.error)
-//        }
-
+        Spacer(Modifier.height(16.dp))
 
         Button(onClick = {
-            // Construisez votre objet SearchCriteria ici et appelez onSearchCriteriaChanged
-            onSearchCriteriaChanged(SearchCriteria(
-                areaRange = areaRange,
-                priceRange = priceRange,
-                nearSchool = nearLocation,
-                nearShops = nearShops,
-                onMarketSince = onMarketSince
-            ))
+            // Construction de l'objet SearchCriteria avec les valeurs min et max directement.
+            val searchCriteria = SearchCriteria(
+                minArea = areaMin,
+                maxArea = areaMax,
+                minPrice = priceMin,
+                maxPrice = priceMax,
+                // Assurez-vous d'inclure les autres champs nécessaires pour SearchCriteria
+            )
+
+            // Appel de la fonction avec les nouveaux critères de recherche.
+            onSearchCriteriaChanged(searchCriteria)
+            searchViewModel.performSearch()
         }) {
             Text("Rechercher")
         }
@@ -252,46 +209,4 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
 }
 
 
-@Composable
-fun DateInputField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    errorMessage: String = "Format invalide (JJ/MM/AAAA)"
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    var showError by remember { mutableStateOf(false) }
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = { newValue ->
-            showError = false
-            onValueChange(newValue)
-        },
-        label = { Text(label) },
-        isError = showError,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(onDone = {
-            keyboardController?.hide()
-            showError = !isValidDate(value)
-        }),
-        trailingIcon = {
-            if (showError) {
-                Text(text = errorMessage)
-            }
-        }
-    )
-}
-
-fun isValidDate(dateStr: String): Boolean {
-    return try {
-        LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        true
-    } catch (e: DateTimeParseException) {
-        false
-    }
-}

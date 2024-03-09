@@ -35,10 +35,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.runtime.collectAsState
 import androidx.core.content.ContextCompat
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.DrawerContent
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.RealEstateListScreen
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.ToolbarRealEstate
+import com.lodenou.realestatemanager.ui.viewmodel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -50,7 +52,7 @@ class RealEstateActivity : ComponentActivity() {
     private val viewModel: RealEstateViewModel by viewModels()
 
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
-
+    private val searchViewModel : SearchViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,17 +60,17 @@ class RealEstateActivity : ComponentActivity() {
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 // La permission a été accordée, continuez avec l'opération
-                setupContent()
+                setupContent(searchViewModel)
             } else {
                 // La permission a été refusée, gérez le cas
                 Toast.makeText(this, "Permission required for app functionality", Toast.LENGTH_LONG).show()
             }
         }
 
-        checkAndRequestPermissions()
+        checkAndRequestPermissions(searchViewModel)
     }
 
-    private fun checkAndRequestPermissions() {
+    private fun checkAndRequestPermissions(searchViewModel: SearchViewModel) {
         when {
             Build.VERSION.SDK_INT <= Build.VERSION_CODES.S -> {
                 // Pour API 32 et inférieures, demandez READ_EXTERNAL_STORAGE et WRITE_EXTERNAL_STORAGE
@@ -80,29 +82,30 @@ class RealEstateActivity : ComponentActivity() {
                 if (!hasReadPermission || !hasWritePermission) {
                     permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 } else {
-                    setupContent()
+                    setupContent(searchViewModel)
                 }
             }
             else -> {
-                setupContent()
+                setupContent(searchViewModel)
             }
         }
     }
 
 
-    private fun setupContent() {
+    private fun setupContent(searchViewModel: SearchViewModel) {
         setContent {
 //            RealEstateManagerTheme {
-                MainScreen(viewModel)
+                MainScreen(viewModel, searchViewModel)
 //            }
         }
     }
 }
 @Composable
-fun MainScreen(viewModel: RealEstateViewModel) {
+fun MainScreen(viewModel: RealEstateViewModel, searchViewModel: SearchViewModel) {
     val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
+    val searchResults by searchViewModel.searchResults.collectAsState()
 
     ModalNavigationDrawer(
         drawerContent = { DrawerContent(onNavigate = { intent -> context.startActivity(intent) }) },
@@ -114,7 +117,7 @@ fun MainScreen(viewModel: RealEstateViewModel) {
                     coroutineScope.launch {
                         if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
-                }, viewModel)
+                }, viewModel,searchViewModel )
             }
         ) { padding ->
             Surface(
@@ -123,8 +126,15 @@ fun MainScreen(viewModel: RealEstateViewModel) {
                     .padding(padding),
                 color = MaterialTheme.colorScheme.background
             ) {
-                val realEstates by viewModel.realEstates.observeAsState(emptyList())
-                RealEstateListScreen(realEstates = realEstates)
+//                val realEstates by viewModel.realEstates.observeAsState(emptyList())
+//                RealEstateListScreen(realEstates = realEstates)
+
+                val realEstatesToShow = if (searchResults.isEmpty()) {
+                    viewModel.realEstates.observeAsState(emptyList()).value
+                } else {
+                    searchResults
+                }
+                RealEstateListScreen(realEstates = realEstatesToShow)
             }
         }
     }

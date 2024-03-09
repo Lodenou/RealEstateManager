@@ -59,11 +59,11 @@ class RealEstateRepository @Inject constructor(
 //        realEstateDao.searchRealEstate(minPrice,maxPrice, minArea, maxArea,startDate,endDate, interests)
 //    }
     fun allSearchRealEstates(
-        minPrice: Double?,
-        maxPrice: Double?,
-        minArea: Double?,
-        maxArea: Double?,
-    ) {
-        realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea)
+        minPrice: Int?,
+        maxPrice: Int?,
+        minArea: Int?,
+        maxArea: Int?
+    ): Flow<List<RealEstate>> {
+        return realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea)
     }
 }

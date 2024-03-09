@@ -52,16 +52,18 @@ interface RealEstateDao {
 //    ): Flow<List<RealEstate>> // Utilisez LiveData ou Flow selon vos besoins
 
     @Query("""
-        SELECT * FROM real_estate_table 
-        WHERE price BETWEEN :minPrice AND :maxPrice
-        AND area BETWEEN :minArea AND :maxArea
+       SELECT * FROM real_estate_table
+    WHERE (:minPrice IS NULL OR price >= :minPrice)
+    AND (:maxPrice IS NULL OR price <= :maxPrice)
+    AND (:minArea IS NULL OR area >= :minArea)
+    AND (:maxArea IS NULL OR area <= :maxArea)
 
     """)
     fun searchRealEstate(
-        minPrice: Double?,
-        maxPrice: Double?,
-        minArea: Double?,
-        maxArea: Double?,
+        minPrice: Int?,
+        maxPrice: Int?,
+        minArea: Int?,
+        maxArea: Int?,
 
     ): Flow<List<RealEstate>>
 }
