@@ -185,6 +185,8 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
         }
 
 
+
+
         // Ajoutez ici d'autres éléments du formulaire si nécessaire...
 
         Spacer(Modifier.height(16.dp))
@@ -196,11 +198,11 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
                 maxArea = areaMax,
                 minPrice = priceMin,
                 maxPrice = priceMax,
-                // Assurez-vous d'inclure les autres champs nécessaires pour SearchCriteria
+//                 Assurez-vous d'inclure les autres champs nécessaires pour SearchCriteria
             )
 
             // Appel de la fonction avec les nouveaux critères de recherche.
-            onSearchCriteriaChanged(searchCriteria)
+//            onSearchCriteriaChanged(searchCriteria)
             searchViewModel.performSearch()
         }) {
             Text("Rechercher")

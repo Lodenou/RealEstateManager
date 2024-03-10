@@ -2,6 +2,7 @@ package com.lodenou.realestatemanager.ui.components.realestateactivitycomponents
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -50,20 +53,10 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
     var description by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
 
-    // point of interest
-    val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant", "école", "commerces")
-    var selectedPointsOfInterest by remember { mutableStateOf(listOf<String>()) }
-
-    // Une fonction pour gérer la sélection/désélection
-    val onPointOfInterestSelected: (String, Boolean) -> Unit = { point, isSelected ->
-        selectedPointsOfInterest = if (isSelected) {
-            // Ajouter le point à la liste s'il est sélectionné
-            selectedPointsOfInterest + point
-        } else {
-            // Retirer le point de la liste s'il est désélectionné
-            selectedPointsOfInterest - point
-        }
-    }
+    var selectedRestaurant by remember { mutableStateOf(false) }
+    var selectedCinema by remember { mutableStateOf(false) }
+    var selectedEcole by remember { mutableStateOf(false) }
+    var selectedCommerces by remember { mutableStateOf(false) }
 
     var status by remember { mutableStateOf("") }
     val statuses = listOf("Disponible", "Vendu")
@@ -154,12 +147,10 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
                     shape = RoundedCornerShape(30.dp)
                 )
 
-                PointsOfInterestDropdownMenu(
-                    pointsOfInterest = allPointsOfInterest,
-                    selectedPointsOfInterest = selectedPointsOfInterest,
-                    onPointOfInterestSelected = onPointOfInterestSelected,
-                    shape = RoundedCornerShape(30.dp)
-                )
+                CheckboxWithLabel(label = "Restaurant", checked = selectedRestaurant, onCheckedChange = { selectedRestaurant = it })
+                CheckboxWithLabel(label = "Cinéma", checked = selectedCinema, onCheckedChange = { selectedCinema = it })
+                CheckboxWithLabel(label = "École", checked = selectedEcole, onCheckedChange = { selectedEcole = it })
+                CheckboxWithLabel(label = "Commerces", checked = selectedCommerces, onCheckedChange = { selectedCommerces = it })
 
                 CustomDropdownMenu(
                     options = statuses,
@@ -207,12 +198,14 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
                         description = description,
                         images = realEstateViewModel.imagesWithDescriptions, // vm list used here
                         address = address,
-                        pointsOfInterest = selectedPointsOfInterest,
+                        restaurant = selectedRestaurant,
+                        cinema = selectedCinema,
+                        ecole = selectedEcole,
+                        commerces = selectedCommerces,
                         status = status,
                         marketEntryDate = marketEntryDate,
                         saleDate = saleDate,
                         realEstateAgent = realEstateAgentName,
-
                         )
 
 
@@ -246,4 +239,15 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
             }
         }
     )
+}
+
+@Composable
+fun CheckboxWithLabel(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        Text(text = label)
+    }
 }

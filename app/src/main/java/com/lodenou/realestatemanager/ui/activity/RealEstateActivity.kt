@@ -126,12 +126,12 @@ fun MainScreen(viewModel: RealEstateViewModel, searchViewModel: SearchViewModel)
                     .padding(padding),
                 color = MaterialTheme.colorScheme.background
             ) {
-//                val realEstates by viewModel.realEstates.observeAsState(emptyList())
-//                RealEstateListScreen(realEstates = realEstates)
 
-                val realEstatesToShow = if (searchResults.isEmpty()) {
+                val realEstatesToShow = if (!searchViewModel.searchPerformed.value) {
+                    // Si aucune recherche n'a été effectuée, affichez tous les biens
                     viewModel.realEstates.observeAsState(emptyList()).value
                 } else {
+                    // Sinon, utilisez les résultats de la recherche (même s'ils sont vides)
                     searchResults
                 }
                 RealEstateListScreen(realEstates = realEstatesToShow)

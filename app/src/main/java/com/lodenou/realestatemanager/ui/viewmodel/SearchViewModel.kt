@@ -3,6 +3,7 @@ package com.lodenou.realestatemanager.ui.viewmodel
 import android.content.Context
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,25 +24,33 @@ class SearchViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
+    var searchPerformed = mutableStateOf(false)
 
     var minPrice = mutableIntStateOf(0)
     var maxPrice = mutableIntStateOf(0)
     var minArea = mutableIntStateOf(0)
     var maxArea = mutableIntStateOf(0)
-//    var startDate = mutableIntStateOf(0)
-//    var endDate = mutableIntStateOf(0)
-//    var interests = mutableIntStateOf(0)
+
+    var restaurant = mutableStateOf<Boolean?>(null)
+    var cinema = mutableStateOf<Boolean?>(null)
+    var ecole = mutableStateOf<Boolean?>(null)
+    var commerces = mutableStateOf<Boolean?>(null)
 
     private val _searchResults = MutableStateFlow<List<RealEstate>>(emptyList())
     val searchResults: StateFlow<List<RealEstate>> = _searchResults.asStateFlow()
 
     fun performSearch() {
+        searchPerformed.value = true
         viewModelScope.launch {
             repository.allSearchRealEstates(
                 minPrice = minPrice.intValue.takeIf { it > 0 },
                 maxPrice = maxPrice.intValue.takeIf { it > 0 },
                 minArea = minArea.intValue.takeIf { it > 0 },
-                maxArea = maxArea.intValue.takeIf { it > 0 }
+                maxArea = maxArea.intValue.takeIf { it > 0 },
+                restaurant = restaurant.value,
+                cinema = cinema.value,
+                ecole = ecole.value,
+                commerces = commerces.value
             ).collect { results ->
                 _searchResults.value = results
             }

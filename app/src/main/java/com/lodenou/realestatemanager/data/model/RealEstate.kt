@@ -17,11 +17,18 @@ data class RealEstate(
     val description: String? = null,
     val images: List<ImageWithDescription>? = null,
     val address: String? = null,
-    val pointsOfInterest: List<String>? = null,
+
+    var restaurant: Boolean = false,
+    var cinema: Boolean = false,
+    var ecole: Boolean = false,
+    var commerces: Boolean = false,
+
+
     val status: String? = null,
     var marketEntryDate: LocalDate = LocalDate.now(),
     var saleDate: LocalDate? = null,
     val realEstateAgent: String? = null,
+
     )
 
 

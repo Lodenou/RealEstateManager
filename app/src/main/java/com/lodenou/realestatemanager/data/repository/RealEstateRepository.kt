@@ -49,20 +49,17 @@ class RealEstateRepository @Inject constructor(
         return RealestateApi.retrofitService.getLatLngFromAddress(address, BuildConfig.API_KEY)
     }
 
-    //     fun allSearchRealEstates(minPrice: Double?,
-//                              maxPrice: Double?,
-//                              minArea: Double?,
-//                              maxArea: Double?,
-//                              startDate: String,
-//                              endDate: String,
-//                              interests: String?) {
-//        realEstateDao.searchRealEstate(minPrice,maxPrice, minArea, maxArea,startDate,endDate, interests)
-//    }
+
     fun allSearchRealEstates(
         minPrice: Int?,
         maxPrice: Int?,
         minArea: Int?,
-        maxArea: Int?
+        maxArea: Int?,
+        restaurant: Boolean? = null,
+        cinema: Boolean? = null,
+        ecole: Boolean? = null,
+        commerces: Boolean? = null,
+
     ): Flow<List<RealEstate>> {
         return realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea)
     }
