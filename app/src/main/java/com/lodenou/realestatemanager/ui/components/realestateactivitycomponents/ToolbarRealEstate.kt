@@ -131,6 +131,11 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
         var priceMin by searchViewModel.minPrice
         var priceMax by searchViewModel.maxPrice
 
+        var restaurant by searchViewModel.restaurant
+        var cinema by searchViewModel.cinema
+        var ecole by searchViewModel.ecole
+        var commerces by searchViewModel.commerces
+
         var startDate by searchViewModel.startDate
         var endDate by searchViewModel.endDate
 
@@ -184,6 +189,11 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
             )
         }
 
+        CheckboxWithLabelNullPossible(label = "Restaurant", checked = restaurant) { restaurant = it }
+        CheckboxWithLabelNullPossible(label = "Cinéma", checked = cinema) { cinema = it }
+        CheckboxWithLabelNullPossible(label = "École", checked = ecole) { ecole = it }
+        CheckboxWithLabelNullPossible(label = "Commerces", checked = commerces) { commerces = it }
+
         Spacer(Modifier.height(16.dp))
         CustomDatePicker(
             value = startDate,
@@ -200,7 +210,6 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
         )
 
         Spacer(Modifier.height(16.dp))
-
 
 
         Button(onClick = {
