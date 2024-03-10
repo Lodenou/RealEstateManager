@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,6 +37,9 @@ class SearchViewModel @Inject constructor(
     var ecole = mutableStateOf<Boolean?>(null)
     var commerces = mutableStateOf<Boolean?>(null)
 
+    var startDate = mutableStateOf(LocalDate.now())
+    var endDate = mutableStateOf(LocalDate.now())
+
     private val _searchResults = MutableStateFlow<List<RealEstate>>(emptyList())
     val searchResults: StateFlow<List<RealEstate>> = _searchResults.asStateFlow()
 
@@ -50,7 +54,9 @@ class SearchViewModel @Inject constructor(
                 restaurant = restaurant.value,
                 cinema = cinema.value,
                 ecole = ecole.value,
-                commerces = commerces.value
+                commerces = commerces.value,
+                startDate = startDate.value,
+                endDate = endDate.value,
             ).collect { results ->
                 _searchResults.value = results
             }

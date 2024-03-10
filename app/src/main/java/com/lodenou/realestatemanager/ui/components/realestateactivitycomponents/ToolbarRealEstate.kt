@@ -53,10 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.data.model.SearchCriteria
 import com.lodenou.realestatemanager.ui.viewmodel.RealEstateViewModel
 import com.lodenou.realestatemanager.ui.viewmodel.SearchViewModel
-import java.time.LocalDate
-import java.time.Period
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,6 +131,9 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
         var priceMin by searchViewModel.minPrice
         var priceMax by searchViewModel.maxPrice
 
+        var startDate by searchViewModel.startDate
+        var endDate by searchViewModel.endDate
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = if (areaMin == 0) "" else areaMin.toString(),
@@ -184,15 +184,27 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
             )
         }
 
-
-
-
-        // Ajoutez ici d'autres éléments du formulaire si nécessaire...
+        Spacer(Modifier.height(16.dp))
+        CustomDatePicker(
+            value = startDate,
+            onValueChange = { startDate = it },
+            label = "Mise sur le marché entre : ",
+            defaultText = "",
+        )
+        Spacer(Modifier.width(8.dp))
+        CustomDatePicker(
+            value = endDate,
+            onValueChange = { endDate = it },
+            label = " et :",
+            defaultText = ""
+        )
 
         Spacer(Modifier.height(16.dp))
 
+
+
         Button(onClick = {
-            // Construction de l'objet SearchCriteria avec les valeurs min et max directement.
+
             val searchCriteria = SearchCriteria(
                 minArea = areaMin,
                 maxArea = areaMax,

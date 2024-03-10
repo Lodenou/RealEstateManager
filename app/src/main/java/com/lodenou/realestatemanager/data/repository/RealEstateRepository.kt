@@ -8,6 +8,7 @@ import com.lodenou.realestatemanager.data.RealEstateDao
 import com.lodenou.realestatemanager.data.RealestateApi
 import com.lodenou.realestatemanager.data.model.RealEstate
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 import javax.inject.Inject
 
 class RealEstateRepository @Inject constructor(
@@ -59,8 +60,10 @@ class RealEstateRepository @Inject constructor(
         cinema: Boolean? = null,
         ecole: Boolean? = null,
         commerces: Boolean? = null,
+        startDate: LocalDate?,
+        endDate: LocalDate?,
 
-    ): Flow<List<RealEstate>> {
-        return realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea)
+        ): Flow<List<RealEstate>> {
+        return realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea,restaurant,cinema,ecole,commerces, startDate, endDate)
     }
 }

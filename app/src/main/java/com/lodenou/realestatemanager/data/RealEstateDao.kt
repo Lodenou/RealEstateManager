@@ -61,6 +61,7 @@ interface RealEstateDao {
     AND (:cinema IS NULL OR cinema = :cinema)
     AND (:ecole IS NULL OR ecole = :ecole)
     AND (:commerces IS NULL OR commerces = :commerces)
+    AND (:startDate IS NULL OR  :endDate IS NULL OR marketEntryDate BETWEEN :startDate AND :endDate)
 """)
     fun searchRealEstate(
         minPrice: Int?,
@@ -71,5 +72,7 @@ interface RealEstateDao {
         cinema: Boolean? = null,
         ecole: Boolean? = null,
         commerces: Boolean? = null,
+        startDate: LocalDate?,
+        endDate: LocalDate?,
     ): Flow<List<RealEstate>>
 }
