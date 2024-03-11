@@ -1,8 +1,5 @@
 package com.lodenou.realestatemanager.ui.components.realestateactivitycomponents
 
-import android.app.DatePickerDialog
-import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,47 +7,33 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.lodenou.realestatemanager.data.model.SearchCriteria
 import com.lodenou.realestatemanager.ui.viewmodel.RealEstateViewModel
 import com.lodenou.realestatemanager.ui.viewmodel.SearchViewModel
 
@@ -61,19 +44,22 @@ fun ToolbarRealEstate(onMenuClick: () -> Unit, realEstateViewModel: RealEstateVi
     var showDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text("Real Estate Manager") },
+        title = { Text("Real Estate") },
         navigationIcon = {
             IconButton(onClick = onMenuClick) {
                 Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
             }
         },
         actions = {
+
             IconButton(onClick = { showSearchDialog = true }) {
                 Icon(imageVector = Icons.Default.Search, contentDescription = "Recherche")
             }
             IconButton(onClick = { showDialog = true }) {
                 Icon(Icons.Filled.Add, contentDescription = "Ajouter")
             }
+
+
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     )
@@ -86,27 +72,19 @@ fun ToolbarRealEstate(onMenuClick: () -> Unit, realEstateViewModel: RealEstateVi
     if (showSearchDialog) {
         SearchCriteriaDialog(
             onDismiss = { showSearchDialog = false },
-            onSearch = { criteria ->
-                // Gérer la recherche ici
-                // Par exemple, afficher les critères de recherche dans la console
-                println("Critères de recherche: $criteria")
-                // Ou appeler une fonction de votre ViewModel pour effectuer la recherche
-            }, searchViewModel
+             searchViewModel
         )
     }
 }
 
 
 @Composable
-fun SearchCriteriaDialog(onDismiss: () -> Unit, onSearch: (SearchCriteria) -> Unit, searchViewModel : SearchViewModel) {
+fun SearchCriteriaDialog(onDismiss: () -> Unit, searchViewModel : SearchViewModel) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Recherche multi-critères") },
         text = {
-            SearchCriteriaForm(onSearchCriteriaChanged = { criteria ->
-                onSearch(criteria)
-                onDismiss()
-            },searchViewModel )
+            SearchCriteriaForm(searchViewModel , onDismiss)
         },
         confirmButton = {},
         dismissButton = {
@@ -118,7 +96,7 @@ fun SearchCriteriaDialog(onDismiss: () -> Unit, onSearch: (SearchCriteria) -> Un
 }
 
 @Composable
-fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, searchViewModel: SearchViewModel) {
+fun SearchCriteriaForm( searchViewModel: SearchViewModel,  onDismiss: () -> Unit) {
     // Scroll state pour la colonne scrollable
     val scrollState = rememberScrollState()
 
@@ -189,10 +167,10 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
             )
         }
 
-        CheckboxWithLabelNullPossible(label = "Restaurant", checked = restaurant) { restaurant = it }
-        CheckboxWithLabelNullPossible(label = "Cinéma", checked = cinema) { cinema = it }
-        CheckboxWithLabelNullPossible(label = "École", checked = ecole) { ecole = it }
-        CheckboxWithLabelNullPossible(label = "Commerces", checked = commerces) { commerces = it }
+        CheckboxWithLabel(label = "Restaurant", checked = restaurant) { restaurant = it }
+        CheckboxWithLabel(label = "Cinéma", checked = cinema) { cinema = it }
+        CheckboxWithLabel(label = "École", checked = ecole) { ecole = it }
+        CheckboxWithLabel(label = "Commerces", checked = commerces) { commerces = it }
 
         Spacer(Modifier.height(16.dp))
         CustomDatePicker(
@@ -211,23 +189,20 @@ fun SearchCriteriaForm(onSearchCriteriaChanged: (SearchCriteria) -> Unit, search
 
         Spacer(Modifier.height(16.dp))
 
-
-        Button(onClick = {
-
-            val searchCriteria = SearchCriteria(
-                minArea = areaMin,
-                maxArea = areaMax,
-                minPrice = priceMin,
-                maxPrice = priceMax,
-//                 Assurez-vous d'inclure les autres champs nécessaires pour SearchCriteria
-            )
-
-            // Appel de la fonction avec les nouveaux critères de recherche.
-//            onSearchCriteriaChanged(searchCriteria)
-            searchViewModel.performSearch()
-        }) {
-            Text("Rechercher")
+        Row {
+            Button(onClick = {
+                onDismiss()
+                searchViewModel.performSearch()
+            }) {
+                Text("Rechercher")
+            }
+            Button(onClick = {
+                searchViewModel.resetSearch()
+            }) {
+                Text("Réinitialiser", textAlign = TextAlign.Center)
+            }
         }
+
     }
 }
 

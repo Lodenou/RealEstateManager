@@ -32,10 +32,10 @@ class SearchViewModel @Inject constructor(
     var minArea = mutableIntStateOf(0)
     var maxArea = mutableIntStateOf(0)
 
-    var restaurant = mutableStateOf<Boolean?>(null)
-    var cinema = mutableStateOf<Boolean?>(null)
-    var ecole = mutableStateOf<Boolean?>(null)
-    var commerces = mutableStateOf<Boolean?>(null)
+    var restaurant = mutableStateOf(false)
+    var cinema = mutableStateOf(false)
+    var ecole = mutableStateOf(false)
+    var commerces = mutableStateOf(false)
 
     var startDate = mutableStateOf(LocalDate.now())
     var endDate = mutableStateOf(LocalDate.now())
@@ -61,5 +61,19 @@ class SearchViewModel @Inject constructor(
                 _searchResults.value = results
             }
         }
+    }
+    fun resetSearch() {
+        searchPerformed.value = false
+        minPrice.value = 0
+        maxPrice.value = 0
+        minArea.value = 0
+        maxArea.value = 0
+        restaurant.value = false
+        cinema.value = false
+        ecole.value = false
+        commerces.value = false
+        startDate.value = LocalDate.now()
+        endDate.value = LocalDate.now()
+        _searchResults.value = emptyList()
     }
 }
