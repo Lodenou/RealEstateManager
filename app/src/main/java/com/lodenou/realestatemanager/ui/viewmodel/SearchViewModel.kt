@@ -40,6 +40,8 @@ class SearchViewModel @Inject constructor(
     var startDate = mutableStateOf(LocalDate.now())
     var endDate = mutableStateOf(LocalDate.now())
 
+    var isSold = mutableStateOf<Boolean?>(null)
+
     private val _searchResults = MutableStateFlow<List<RealEstate>>(emptyList())
     val searchResults: StateFlow<List<RealEstate>> = _searchResults.asStateFlow()
 
@@ -57,11 +59,13 @@ class SearchViewModel @Inject constructor(
                 commerces = commerces.value,
                 startDate = startDate.value,
                 endDate = endDate.value,
+                isSold = isSold.value
             ).collect { results ->
                 _searchResults.value = results
             }
         }
     }
+
     fun resetSearch() {
         searchPerformed.value = false
         minPrice.value = 0
@@ -74,6 +78,7 @@ class SearchViewModel @Inject constructor(
         commerces.value = false
         startDate.value = LocalDate.now()
         endDate.value = LocalDate.now()
+        isSold.value = null
         _searchResults.value = emptyList()
     }
 }

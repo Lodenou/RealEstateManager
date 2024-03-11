@@ -62,8 +62,20 @@ class RealEstateRepository @Inject constructor(
         commerces: Boolean = false,
         startDate: LocalDate?,
         endDate: LocalDate?,
-
-        ): Flow<List<RealEstate>> {
-        return realEstateDao.searchRealEstate(minPrice, maxPrice, minArea, maxArea,restaurant,cinema,ecole,commerces, startDate, endDate)
+        isSold: Boolean?
+    ): Flow<List<RealEstate>> {
+        return realEstateDao.searchRealEstate(
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            minArea = minArea,
+            maxArea = maxArea,
+            restaurant = restaurant,
+            cinema = cinema,
+            ecole = ecole,
+            commerces = commerces,
+            startDate = startDate,
+            endDate = endDate,
+            isSold = isSold
+        )
     }
 }

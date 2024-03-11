@@ -57,12 +57,12 @@ interface RealEstateDao {
     AND (:maxPrice IS NULL OR price <= :maxPrice)
     AND (:minArea IS NULL OR area >= :minArea)
     AND (:maxArea IS NULL OR area <= :maxArea)
-    AND (:restaurant IS NULL OR restaurant = :restaurant)
-    AND (:cinema IS NULL OR cinema = :cinema)
-    AND (:ecole IS NULL OR ecole = :ecole)
-    AND (:commerces IS NULL OR commerces = :commerces)
-
-    AND (:startDate IS NULL OR  :endDate IS NULL OR marketEntryDate BETWEEN :startDate AND :endDate)
+    AND (:restaurant = 0 OR restaurant = :restaurant)
+    AND (:cinema = 0 OR cinema = :cinema)
+    AND (:ecole = 0 OR ecole = :ecole)
+    AND (:commerces = 0 OR commerces = :commerces)
+   AND (:startDate IS NULL OR  :endDate IS NULL OR marketEntryDate BETWEEN :startDate AND :endDate)
+   AND (:isSold IS NULL OR (saleDate IS NOT NULL AND :isSold = true) OR (saleDate IS NULL AND :isSold = false))
 """)
     fun searchRealEstate(
         minPrice: Int?,
@@ -75,5 +75,6 @@ interface RealEstateDao {
         commerces: Boolean = false,
         startDate: LocalDate?,
         endDate: LocalDate?,
+        isSold: Boolean?
     ): Flow<List<RealEstate>>
 }

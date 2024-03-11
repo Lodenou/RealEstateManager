@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -187,6 +188,16 @@ fun SearchCriteriaForm( searchViewModel: SearchViewModel,  onDismiss: () -> Unit
             defaultText = ""
         )
 
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = searchViewModel.isSold.value ?: false,
+                onCheckedChange = { newValue ->
+                    searchViewModel.isSold.value = newValue
+                }
+            )
+            Text("Afficher uniquement les biens vendus")
+        }
+
         Spacer(Modifier.height(16.dp))
 
         Row {
@@ -197,9 +208,10 @@ fun SearchCriteriaForm( searchViewModel: SearchViewModel,  onDismiss: () -> Unit
                 Text("Rechercher")
             }
             Button(onClick = {
+                onDismiss()
                 searchViewModel.resetSearch()
             }) {
-                Text("Réinitialiser", textAlign = TextAlign.Center)
+                Text("Réinitialiser", textAlign = TextAlign.Center, maxLines = 1)
             }
         }
 
