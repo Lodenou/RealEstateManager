@@ -56,6 +56,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <provider
+            android:name=".data.RealEstateProvider"
+            android:authorities="com.lodenou.realestatemanager.data.RealEstateProvider"
+            android:exported="false">
+        </provider>
+
         <activity
             android:name=".ui.activity.RealEstateActivity"
             android:exported="true"

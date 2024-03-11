@@ -2,6 +2,9 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="RealEstateProviderTest">
+        <State />
+      </entry>
       <entry key="app">
         <State>
           <targetSelectedWithDropDown>
@@ -10,12 +13,12 @@
               <deviceKey>
                 <Key>
                   <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="C:\Users\Lou\.android\avd\Medium_Phone_API_30.avd" />
+                  <value value="C:\Users\Lou\.android\avd\Phone_API_34.avd" />
                 </Key>
               </deviceKey>
             </Target>
           </targetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-03-11T14:39:11.116491100Z" />
+          <timeTargetWasSelectedWithDropDown value="2024-03-11T15:07:48.916529Z" />
         </State>
       </entry>
     </value>

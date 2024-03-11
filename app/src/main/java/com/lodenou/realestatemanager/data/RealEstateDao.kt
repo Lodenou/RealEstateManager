@@ -35,21 +35,10 @@ interface RealEstateDao {
     suspend fun deleteRealEstateById(id: String)
 
 
-//    @Query("""
-//       SELECT * FROM real_estate_table
-//    WHERE (:minPrice IS NULL OR price >= :minPrice)
-//    AND (:maxPrice IS NULL OR price <= :maxPrice)
-//    AND (:minArea IS NULL OR area >= :minArea)
-//    AND (:maxArea IS NULL OR area <= :maxArea)
-//
-//    """)
-//    fun searchRealEstate(
-//        minPrice: Int?,
-//        maxPrice: Int?,
-//        minArea: Int?,
-//        maxArea: Int?,
-//
-//    ): Flow<List<RealEstate>>
+    // Content provider purpose
+    @Query("SELECT * FROM real_estate_table")
+    fun getAllRealEstatesSynchronously(): List<RealEstate>
+
 
     @Query("""
     SELECT * FROM real_estate_table 
