@@ -2,15 +2,7 @@ package com.lodenou.realestatemanager
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
-import com.google.firebase.Timestamp
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.*
@@ -40,5 +32,6 @@ object Utils {
         val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false
     }
+
 
 }

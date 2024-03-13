@@ -15,11 +15,8 @@ import com.lodenou.realestatemanager.data.repository.RealEstateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel

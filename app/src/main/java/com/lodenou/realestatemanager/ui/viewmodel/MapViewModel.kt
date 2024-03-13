@@ -54,11 +54,9 @@ class MapViewModel @Inject constructor(
     }
 
 
-    private fun convertAddressesToLatLng(realEstates: List<RealEstate>) {
-        Log.e("MapViewModel", "convertAddressesToLatLng 1")
+     fun convertAddressesToLatLng(realEstates: List<RealEstate>) {
             val disposable = Observable.fromIterable(realEstates)
                 .flatMap { realEstate ->
-                    Log.e("MapViewModel", "convertAddressesToLatLng 2")
                     repository.getLatLngFromAddress(realEstate.address ?: "")
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -67,9 +65,8 @@ class MapViewModel @Inject constructor(
                             val latLng = if (location?.lat != null && location.lng != null) {
                                 LatLng(location.lat!!, location.lng!!)
                             } else {
-                                LatLng(0.0, 0.0) // Fournir une valeur par défaut si la lat ou lng est null
+                                LatLng(0.0, 0.0)
                             }
-                            Log.e("MapViewModel", "convertAddressesToLatLng $latLng")
                             RealEstateWithLatLng(realEstate, latLng)
 
                         }
@@ -79,7 +76,6 @@ class MapViewModel @Inject constructor(
                 .subscribe({ realEstateWithLatLngList ->
                     _realEstatesWithLatLng.value = realEstateWithLatLngList
                 }, { error ->
-                    Log.e("MapViewModel", "Error converting addresses", error)
                 })
             compositeDisposable.add(disposable)
     }
@@ -103,7 +99,6 @@ private fun observeLocalRealEstates() {
 
     // location
     fun checkPermissionsAndLocateUser() {
-
         val permissionsGranted = arrayOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
@@ -114,7 +109,6 @@ private fun observeLocalRealEstates() {
         if (permissionsGranted) {
             locateUser()
         } else {
-            // Gérer le cas où les permissions ne sont pas accordées
             _userLocation.value = null
         }
     }
@@ -128,18 +122,14 @@ private fun observeLocalRealEstates() {
 
                 fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
                     if (location != null) {
-                        Log.d("MapViewModel", "Location fetched: Lat=${location.latitude}, Lon=${location.longitude}")
                         _userLocation.postValue(location)
                     } else {
-                        Log.d("MapViewModel", "Location fetched is null")
                         _userLocation.postValue(null)
                     }
                 }.addOnFailureListener { exception ->
-                    Log.e("MapViewModel", "Exception while fetching location", exception)
                     _userLocation.postValue(null)
                 }
             } else {
-                Log.d("MapViewModel", "Location permissions not granted")
                 _userLocation.postValue(null)
             }
         }

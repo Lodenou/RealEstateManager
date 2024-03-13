@@ -44,6 +44,10 @@ class RealEstateRepository @Inject constructor(
         realEstateDao.deleteRealEstateById(id)
     }
 
+    fun getRealEstatesSynchronously() : List<RealEstate>{
+       return realEstateDao.getAllRealEstatesSynchronously()
+    }
+
     // Map api
 
     fun getLatLngFromAddress(address: String): Observable<GeocodeResult> {

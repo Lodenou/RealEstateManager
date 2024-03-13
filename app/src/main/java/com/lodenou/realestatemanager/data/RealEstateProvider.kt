@@ -2,6 +2,7 @@ package com.lodenou.realestatemanager.data
 
 import android.content.ContentProvider
 import android.content.ContentValues
+import android.content.UriMatcher
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
@@ -10,6 +11,17 @@ import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import kotlinx.coroutines.flow.forEach
 
 class RealEstateProvider : ContentProvider() {
+
+    companion object {
+        const val AUTHORITY = "com.lodenou.realestatemanager.data.RealEstateProvider"
+        const val REAL_ESTATE_TABLE = 100
+        const val REAL_ESTATE_ID = 101
+
+        val uriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
+            addURI(AUTHORITY, "real_estate_table", REAL_ESTATE_TABLE)
+            addURI(AUTHORITY, "real_estate_table/#", REAL_ESTATE_ID)
+        }
+    }
 
     private var realEstateDao: RealEstateDao? = null
 
@@ -25,62 +37,69 @@ class RealEstateProvider : ContentProvider() {
         selectionArgs: Array<String>?,
         sortOrder: String?
     ): Cursor? {
-        // Définition des colonnes du MatrixCursor basé sur le modèle RealEstate
-        val cursor = MatrixCursor(arrayOf("id", "type", "price", "area", "numberOfRooms", "description", "images", "address", "restaurant", "cinema", "ecole", "commerces", "status", "marketEntryDate", "saleDate", "realEstateAgent"))
+        val cursor = MatrixCursor(arrayOf("id", "type", "price", "area", "numberOfRooms", "description",
+            "images", "address", "restaurant", "cinema", "ecole", "commerces", "status", "marketEntryDate",
+            "saleDate", "realEstateAgent"))
 
-        // Simulation de récupération des données de manière synchronisée.
-        // Vous devez adapter cette partie pour qu'elle corresponde à votre implémentation de récupération des données.
-        val realEstates = realEstateDao?.getAllRealEstatesSynchronously()
+        when (uriMatcher.match(uri)) {
+            REAL_ESTATE_TABLE -> {
+                val realEstates = realEstateDao?.getAllRealEstatesSynchronously()
+                realEstates?.forEach { realEstate ->
+                    val imagesString = convertImagesListToString(realEstate.images ?: listOf())
 
-        realEstates?.forEach { realEstate ->
-            // Formatage ou récupération des données nécessaires à partir de realEstate
-            val imagesString = realEstate.images?.let { images ->
-                // Ici, adaptez la conversion selon vos besoins, par exemple en convertissant la liste en JSON.
-                convertImagesListToString(images)
-            } ?: ""
-
-            // Ajout des données de realEstate dans le cursor
-            cursor.addRow(arrayOf(
-                realEstate.id,
-                realEstate.type,
-                realEstate.price,
-                realEstate.area,
-                realEstate.numberOfRooms,
-                realEstate.description,
-                imagesString, // Les images sont converties en une String. Adaptez selon votre implémentation.
-                realEstate.address,
-                realEstate.restaurant,
-                realEstate.cinema,
-                realEstate.ecole,
-                realEstate.commerces,
-                realEstate.status,
-                realEstate.marketEntryDate.toString(), // LocalDate converti en String
-                realEstate.saleDate?.toString(), // Nullable LocalDate converti en String si non-null
-                realEstate.realEstateAgent
-            ))
+                    cursor.addRow(arrayOf(
+                        realEstate.id,
+                        realEstate.type,
+                        realEstate.price?.toString() ?: "",
+                        realEstate.area?.toString() ?: "",
+                        realEstate.numberOfRooms?.toString() ?: "",
+                        realEstate.description ?: "",
+                        imagesString, // Assume que vous avez une fonction pour convertir les images en String
+                        realEstate.address ?: "",
+                        realEstate.restaurant.toString(),
+                        realEstate.cinema.toString(),
+                        realEstate.ecole.toString(),
+                        realEstate.commerces.toString(),
+                        realEstate.status ?: "",
+                        realEstate.marketEntryDate.toString(),
+                        realEstate.saleDate?.toString() ?: "",
+                        realEstate.realEstateAgent ?: ""
+                    ))
+                }
+            }
+            REAL_ESTATE_ID -> {
+                // Gérer la requête pour un ID spécifique si nécessaire
+            }
+            else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
 
         return cursor
     }
 
-    override fun getType(p0: Uri): String? {
+    override fun getType(uri: Uri): String? {
         TODO("Not yet implemented")
     }
 
-    override fun insert(p0: Uri, p1: ContentValues?): Uri? {
+    override fun insert(uri: Uri, values: ContentValues?): Uri? {
         TODO("Not yet implemented")
     }
 
-    override fun delete(p0: Uri, p1: String?, p2: Array<out String>?): Int {
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
         TODO("Not yet implemented")
     }
 
-    override fun update(p0: Uri, p1: ContentValues?, p2: String?, p3: Array<out String>?): Int {
+    override fun update(
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<out String>?
+    ): Int {
         TODO("Not yet implemented")
     }
+
+    // Implémentez les autres méthodes (getType, insert, delete, update) selon vos besoins...
 
     private fun convertImagesListToString(images: List<ImageWithDescription>): String {
-        // Implémentation de l'exemple : convertir chaque image en JSON ou concaténer les URIs des images, etc.
         return images.joinToString(separator = ";") { it.description }
     }
 }
