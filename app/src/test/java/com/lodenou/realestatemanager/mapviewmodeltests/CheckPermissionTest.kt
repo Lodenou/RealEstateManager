@@ -24,7 +24,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
@@ -98,19 +97,7 @@ class CheckPermissionTest {
             )
         )
         val fakeRealEstatesFlow = flowOf(fakeRealEstateList)
-        whenever(repository.allSearchRealEstates(
-            minPrice = anyOrNull(),
-            maxPrice = anyOrNull(),
-            minArea = anyOrNull(),
-            maxArea = anyOrNull(),
-            restaurant = anyOrNull(),
-            cinema = anyOrNull(),
-            ecole = anyOrNull(),
-            commerces = anyOrNull(),
-            startDate = anyOrNull(),
-            endDate = anyOrNull(),
-            isSold = anyOrNull()
-            )).thenReturn(flowOf(fakeRealEstateList))
+        whenever(repository.allRealEstates).thenReturn(fakeRealEstatesFlow)
         viewModel = MapViewModel(repository, context)
     }
 

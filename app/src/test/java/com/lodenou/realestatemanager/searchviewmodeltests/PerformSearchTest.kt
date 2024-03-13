@@ -80,10 +80,17 @@ class PerformSearchTest {
         )
 
         whenever(repository.allSearchRealEstates(
-            minPrice = anyOrNull(), maxPrice = anyOrNull(), minArea = anyOrNull(),
-            maxArea = anyOrNull(), restaurant = anyOrNull(), cinema = anyOrNull(),
-            ecole = anyOrNull(), commerces = anyOrNull(), startDate = anyOrNull(),
-            endDate = anyOrNull(), isSold = anyOrNull()
+            minPrice = anyOrNull(),
+            maxPrice = anyOrNull(),
+            minArea = anyOrNull(),
+            maxArea = anyOrNull(),
+            restaurant = anyOrNull(),
+            cinema = anyOrNull(),
+            ecole = anyOrNull(),
+            commerces = anyOrNull(),
+            startDate = anyOrNull(),
+            endDate = anyOrNull(),
+            isSold = anyOrNull()
         )).thenReturn(flowOf(expectedResults))
 
         viewModel.performSearch()
