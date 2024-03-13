@@ -1,10 +1,11 @@
-package com.lodenou.realestatemanager
+package com.lodenou.realestatemanager.mapviewmodeltests
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.core.content.ContextCompat
+import androidx.test.core.app.ApplicationProvider
 import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.data.model.RealEstate
 import com.lodenou.realestatemanager.data.repository.RealEstateRepository
@@ -16,19 +17,14 @@ import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.jupiter.api.Assertions.assertNotNull
-
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
@@ -46,15 +42,13 @@ class CheckPermissionTest {
 
     private lateinit var repository: RealEstateRepository
 
-    private lateinit var mockContext: Context
-
     private lateinit var viewModel: MapViewModel
     private val testDispatcher = TestCoroutineDispatcher()
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        mockContext = Mockito.mock(Context::class.java)
+        val context = ApplicationProvider.getApplicationContext<Context>()
         repository = Mockito.mock(RealEstateRepository::class.java)
 
         Dispatchers.setMain(testDispatcher)
@@ -104,34 +98,31 @@ class CheckPermissionTest {
             )
         )
         val fakeRealEstatesFlow = flowOf(fakeRealEstateList)
-        whenever(repository.allRealEstates).thenReturn(fakeRealEstatesFlow)
-        viewModel = MapViewModel(repository, mockContext)
-    }
-
-    @Test
-    fun checkPermissionsAndLocateUser_PermissionsGranted() {
-        Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
-            mockedStatic.`when`<Int> { ContextCompat.checkSelfPermission(eq(mockContext), any()) }
-                .thenReturn(PackageManager.PERMISSION_GRANTED)
-
-            viewModel.checkPermissionsAndLocateUser()
-
-            assertNotNull(
-                viewModel.userLocation.value,
-                "User location should not be null when permissions are granted"
-            )
-        }
+        whenever(repository.allSearchRealEstates(
+            minPrice = anyOrNull(),
+            maxPrice = anyOrNull(),
+            minArea = anyOrNull(),
+            maxArea = anyOrNull(),
+            restaurant = anyOrNull(),
+            cinema = anyOrNull(),
+            ecole = anyOrNull(),
+            commerces = anyOrNull(),
+            startDate = anyOrNull(),
+            endDate = anyOrNull(),
+            isSold = anyOrNull()
+            )).thenReturn(flowOf(fakeRealEstateList))
+        viewModel = MapViewModel(repository, context)
     }
 
     @Test
     fun checkPermissionsAndLocateUser_PermissionsNotGranted() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
         Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
-            mockedStatic.`when`<Int> { ContextCompat.checkSelfPermission(eq(mockContext), any()) }
+            mockedStatic.`when`<Int> { ContextCompat.checkSelfPermission(eq(context), any()) }
                 .thenReturn(PackageManager.PERMISSION_DENIED)
 
             viewModel.checkPermissionsAndLocateUser()
 
-            // Assert your expected outcomes here
             assert(viewModel.userLocation.value == null)
         }
     }

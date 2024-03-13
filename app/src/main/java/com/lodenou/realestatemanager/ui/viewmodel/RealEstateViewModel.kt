@@ -82,5 +82,4 @@ class RealEstateViewModel @Inject constructor(
     fun removeImageWithDescription(imageWithDescription: ImageWithDescription) {
         imagesWithDescriptions.remove(imageWithDescription)
     }
-
 }

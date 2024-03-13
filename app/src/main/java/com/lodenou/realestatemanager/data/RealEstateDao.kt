@@ -1,5 +1,6 @@
 package com.lodenou.realestatemanager.data
 
+import android.database.Cursor
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
@@ -39,6 +40,8 @@ interface RealEstateDao {
     @Query("SELECT * FROM real_estate_table")
     fun getAllRealEstatesSynchronously(): List<RealEstate>
 
+    @Query("SELECT * FROM real_estate_table")
+    fun getRealEstateForContentProvider(): Cursor
 
     @Query("""
     SELECT * FROM real_estate_table 
