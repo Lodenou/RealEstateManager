@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.data.model.RealEstate
+import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CheckboxWithLabel
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomDatePicker
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomDropdownMenu
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.ImagePickerWithDescription
@@ -52,16 +53,11 @@ fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detai
     var address by remember { mutableStateOf(realEstate.address.toString()) }
 
     // point of interest
-    val allPointsOfInterest = listOf("Parc", "Musée", "Cinéma", "Restaurant")
-    var selectedPointsOfInterest by remember { mutableStateOf(realEstate.pointsOfInterest) }
+    var restaurant by remember { mutableStateOf(realEstate.restaurant) }
+    var cinema by remember { mutableStateOf(realEstate.cinema) }
+    var ecole by remember { mutableStateOf(realEstate.ecole) }
+    var commerces by remember { mutableStateOf(realEstate.commerces) }
 
-    val onPointOfInterestSelected: (String, Boolean) -> Unit = { point, isSelected ->
-        selectedPointsOfInterest = if (isSelected) {
-            selectedPointsOfInterest?.plus(point)
-        } else {
-            selectedPointsOfInterest?.minus(point)
-        }
-    }
 
     var status by remember { mutableStateOf(realEstate.status.toString()) }
     val statuses = listOf("Disponible", "Vendu")
@@ -151,12 +147,10 @@ fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detai
                     shape = RoundedCornerShape(30.dp)
                 )
 
-                PointsOfInterestDropdownMenu(
-                    pointsOfInterest = allPointsOfInterest,
-                    selectedPointsOfInterest = selectedPointsOfInterest.orEmpty(),
-                    onPointOfInterestSelected = onPointOfInterestSelected,
-                    shape = RoundedCornerShape(30.dp)
-                )
+                CheckboxWithLabel(label = "Restaurant", checked = restaurant, onCheckedChange = { restaurant = it })
+                CheckboxWithLabel(label = "Cinéma", checked = cinema, onCheckedChange = { cinema = it })
+                CheckboxWithLabel(label = "École", checked = ecole, onCheckedChange = { ecole = it })
+                CheckboxWithLabel(label = "Commerces", checked = commerces, onCheckedChange = { commerces = it })
 
                 CustomDropdownMenu(
                     options = statuses,
@@ -204,7 +198,10 @@ fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detai
                         description = description,
                         images = detailViewModel.imagesWithDescriptionsDetail, // vm list used here
                         address = address,
-                        pointsOfInterest = selectedPointsOfInterest,
+                        restaurant = restaurant,
+                        cinema = cinema,
+                        ecole = ecole,
+                        commerces = commerces,
                         status = status,
                         marketEntryDate = marketEntryDate,
                         saleDate = saleDate,

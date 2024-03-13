@@ -3,50 +3,57 @@ package com.lodenou.realestatemanager.data
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
-import android.database.MatrixCursor
 import android.net.Uri
-import androidx.lifecycle.asLiveData
+import com.lodenou.realestatemanager.data.model.RealEstate
 
-//class RealEstateProvider : ContentProvider() {
-//
-//    private var realEstateDao: RealEstateDao? = null
-//
-//    override fun onCreate(): Boolean {
-//        realEstateDao = AppDatabase.getDatabase(context!!, null).realEstateDao()
-//        return true
-//    }
-//
-//    // Exemple d'implémentation de query() utilisant le DAO
-//    override fun query(
-//        uri: Uri,
-//        projection: Array<String>?,
-//        selection: String?,
-//        selectionArgs: Array<String>?,
-//        sortOrder: String?
-//    ): Cursor? {
-//        // Exemple : Accéder à tous les biens immobiliers
-//        val cursor = MatrixCursor(arrayOf("id", "word", "type", "price", "area", "numberOfRooms",
-//            "description", "images", "address", "pointsOfInterest", "status", "marketEntryDate", "saleDate", "realEstateAgent"))
-//        val realEstates = realEstateDao?.getAllRealEstates()?.asLiveData()?.value
-//        realEstates?.forEach { realEstate ->
-//            // Ajouter vos données à cursor ici
-//        }
-//        return cursor
-//    }
-//
-//    override fun getType(p0: Uri): String? {
-//        TODO("Not yet implemented")
-//    }
-//
-//    override fun insert(p0: Uri, p1: ContentValues?): Uri? {
-//        TODO("Not yet implemented")
-//    }
-//
-//    override fun delete(p0: Uri, p1: String?, p2: Array<out String>?): Int {
-//        TODO("Not yet implemented")
-//    }
-//
-//    override fun update(p0: Uri, p1: ContentValues?, p2: String?, p3: Array<out String>?): Int {
-//        TODO("Not yet implemented")
-//    }
-//}
+class RealEstateProvider : ContentProvider() {
+
+    companion object {
+        val AUTHORITY = "com.lodenou.realestatemanager.data.RealEstateProvider"
+        val TABLE_NAME: String = RealEstate::class.java.simpleName
+    }
+
+
+    override fun onCreate(): Boolean {
+        return true
+    }
+
+    override fun query(
+        uri: Uri,
+        projection: Array<String?>?,
+        selection: String?,
+        selectionArgs: Array<String?>?,
+        sortOrder: String?
+    ): Cursor {
+        if (context != null) {
+            val cursor: Cursor = RealEstateRoomDatabase.getDatabase(context!!).realEstateDao()
+                .getRealEstateForContentProvider()
+            cursor.setNotificationUri(context!!.contentResolver, uri)
+            return cursor
+        }
+        throw IllegalArgumentException("Failed to query row for uri $uri")
+    }
+
+    override fun getType(uri: Uri): String {
+        return "vnd.android.cursor.property/$AUTHORITY.$TABLE_NAME"
+    }
+
+    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+        return null
+    }
+
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String?>?): Int {
+        return 0
+    }
+
+    override fun update(
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<String?>?
+    ): Int {
+        return 0
+    }
+
+}
+

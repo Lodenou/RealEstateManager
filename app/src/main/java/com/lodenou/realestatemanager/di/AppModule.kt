@@ -2,8 +2,6 @@ package com.lodenou.realestatemanager.di
 
 import android.content.Context
 import androidx.room.Room
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import com.lodenou.realestatemanager.data.RealEstateDao
 import com.lodenou.realestatemanager.data.RealEstateRoomDatabase
 import dagger.Module
@@ -33,17 +31,6 @@ object AppModule {
         return database.realEstateDao()
     }
 
-    @Singleton
-    @Provides
-    fun provideFirebaseStorage(): FirebaseStorage {
-        return FirebaseStorage.getInstance()
-    }
-
-    @Provides
-    @Singleton
-    fun provideFirebaseFirestore(): FirebaseFirestore {
-        return FirebaseFirestore.getInstance()
-    }
 
     @Provides
     @Singleton

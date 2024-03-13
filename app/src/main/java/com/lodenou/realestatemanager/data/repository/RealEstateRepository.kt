@@ -8,6 +8,7 @@ import com.lodenou.realestatemanager.data.RealEstateDao
 import com.lodenou.realestatemanager.data.RealestateApi
 import com.lodenou.realestatemanager.data.model.RealEstate
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 import javax.inject.Inject
 
 class RealEstateRepository @Inject constructor(
@@ -43,9 +44,42 @@ class RealEstateRepository @Inject constructor(
         realEstateDao.deleteRealEstateById(id)
     }
 
+    fun getRealEstatesSynchronously() : List<RealEstate>{
+       return realEstateDao.getAllRealEstatesSynchronously()
+    }
+
     // Map api
 
     fun getLatLngFromAddress(address: String): Observable<GeocodeResult> {
         return RealestateApi.retrofitService.getLatLngFromAddress(address, BuildConfig.API_KEY)
+    }
+
+
+    fun allSearchRealEstates(
+        minPrice: Int?,
+        maxPrice: Int?,
+        minArea: Int?,
+        maxArea: Int?,
+        restaurant: Boolean = false,
+        cinema: Boolean = false,
+        ecole: Boolean = false,
+        commerces: Boolean = false,
+        startDate: LocalDate?,
+        endDate: LocalDate?,
+        isSold: Boolean?
+    ): Flow<List<RealEstate>> {
+        return realEstateDao.searchRealEstate(
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            minArea = minArea,
+            maxArea = maxArea,
+            restaurant = restaurant,
+            cinema = cinema,
+            ecole = ecole,
+            commerces = commerces,
+            startDate = startDate,
+            endDate = endDate,
+            isSold = isSold
+        )
     }
 }

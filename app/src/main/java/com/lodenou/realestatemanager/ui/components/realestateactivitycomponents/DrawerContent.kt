@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.lodenou.realestatemanager.ui.activity.LoanCalculatorActivity
+import com.lodenou.realestatemanager.ui.activity.MapActivity
 
 @Composable
 fun DrawerContent(onNavigate: (Intent) -> Unit) {
@@ -29,6 +31,15 @@ fun DrawerContent(onNavigate: (Intent) -> Unit) {
             onNavigate(Intent(context, LoanCalculatorActivity::class.java))
         }) {
             Text("Calculateur de prêt immobilier")
+        }
+
+        TextButton(
+            onClick = {
+                onNavigate(Intent(context, MapActivity::class.java))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Map", modifier = Modifier.fillMaxWidth())
         }
     }
 }
