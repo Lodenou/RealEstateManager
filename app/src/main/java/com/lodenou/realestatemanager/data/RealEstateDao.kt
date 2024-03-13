@@ -54,7 +54,7 @@ interface RealEstateDao {
     AND (:ecole = 0 OR ecole = :ecole)
     AND (:commerces = 0 OR commerces = :commerces)
    AND (:startDate IS NULL OR  :endDate IS NULL OR marketEntryDate BETWEEN :startDate AND :endDate)
-   AND (:isSold IS NULL OR (saleDate IS NOT NULL AND :isSold = true) OR (saleDate IS NULL AND :isSold = false))
+   AND (:isSold IS NULL OR (saleDate IS NOT NULL AND :isSold = 1) OR (saleDate IS NULL AND :isSold = 0))
 """)
     fun searchRealEstate(
         minPrice: Int?,
