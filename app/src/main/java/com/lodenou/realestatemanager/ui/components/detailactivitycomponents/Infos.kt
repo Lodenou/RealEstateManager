@@ -21,43 +21,8 @@ fun Info(realEstate: RealEstate){
         if (realEstate.commerces) append("Commerces, ")
     }.removeSuffix(", ")
 
-    Text(
-        text = "Date d'entrée du bien : ${realEstate.marketEntryDate}",
-        modifier = Modifier.padding(start = 8.dp),
-        style = TextStyle(fontWeight = FontWeight.Bold)
-    )
-    Spacer(modifier = Modifier.height(5.dp))
-    if (realEstate.saleDate != null) {
-        Text(
-            text = "Date de vente du bien : ${realEstate.saleDate}",
-            modifier = Modifier.padding(start = 8.dp),
-            style = TextStyle(fontWeight = FontWeight.Bold)
-        )
-    }
-    Spacer(modifier = Modifier.height(5.dp))
-    Text(
-        text = "Agent: ${realEstate.realEstateAgent}",
-        modifier = Modifier.padding(start = 8.dp),
-        style = TextStyle(fontWeight = FontWeight.Bold)
-    )
-    Spacer(modifier = Modifier.height(5.dp))
-    Text(
-        text = "Prix : ${realEstate.price}",
-        modifier = Modifier.padding(start = 8.dp),
-        style = TextStyle(fontWeight = FontWeight.Bold)
-    )
-    Spacer(modifier = Modifier.height(5.dp))
-    Text(
-        text = "Type du bien : ${realEstate.type}",
-        modifier = Modifier.padding(start = 8.dp),
-        style = TextStyle(fontWeight = FontWeight.Bold)
-    )
-    Spacer(modifier = Modifier.height(5.dp))
-    Text(
-        text = "Statut: ${realEstate.status}",
-        modifier = Modifier.padding(start = 8.dp),
-        style = TextStyle(fontWeight = FontWeight.Bold)
-    )
+
+
     Spacer(modifier = Modifier.height(5.dp))
     Text(
         text = "Date d'entrée du bien : ${realEstate.marketEntryDate}",

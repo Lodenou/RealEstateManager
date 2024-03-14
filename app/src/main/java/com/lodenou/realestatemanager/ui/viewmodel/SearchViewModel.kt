@@ -37,6 +37,7 @@ class SearchViewModel @Inject constructor(
     var ecole = mutableStateOf(false)
     var commerces = mutableStateOf(false)
 
+    // null for start date if needed, LocalDate.now() may not be the best way for ux
     var startDate = mutableStateOf(LocalDate.now())
     var endDate = mutableStateOf(LocalDate.now())
 

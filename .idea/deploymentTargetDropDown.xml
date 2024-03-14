@@ -2,9 +2,6 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="NetworkUtilTest">
-        <State />
-      </entry>
       <entry key="RealEstateProviderTest">
         <State />
       </entry>
@@ -16,19 +13,13 @@
               <deviceKey>
                 <Key>
                   <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="C:\Users\Lou\.android\avd\Phone_API_34.avd" />
+                  <value value="C:\Users\Lou\.android\avd\Medium_Tablet_API_34.avd" />
                 </Key>
               </deviceKey>
             </Target>
           </targetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-03-14T13:18:39.932820600Z" />
+          <timeTargetWasSelectedWithDropDown value="2024-03-14T17:14:33.027712300Z" />
         </State>
-      </entry>
-      <entry key="testIsInternetAvailableWithInternetOff()">
-        <State />
-      </entry>
-      <entry key="testIsInternetAvailableWithInternetOn()">
-        <State />
       </entry>
     </value>
   </component>
