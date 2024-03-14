@@ -56,13 +56,13 @@ class RealEstateActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Initialisation de permissionLauncher
+        // Init permissionLauncher
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                // La permission a été accordée, continuez avec l'opération
+                // permission  granted
                 setupContent(searchViewModel)
             } else {
-                // La permission a été refusée, gérez le cas
+                // La permission denied
                 Toast.makeText(this, "Permission required for app functionality", Toast.LENGTH_LONG).show()
             }
         }
@@ -73,7 +73,6 @@ class RealEstateActivity : ComponentActivity() {
     private fun checkAndRequestPermissions(searchViewModel: SearchViewModel) {
         when {
             Build.VERSION.SDK_INT <= Build.VERSION_CODES.S -> {
-                // Pour API 32 et inférieures, demandez READ_EXTERNAL_STORAGE et WRITE_EXTERNAL_STORAGE
                 val hasReadPermission = ContextCompat.checkSelfPermission(
                     this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                 val hasWritePermission = ContextCompat.checkSelfPermission(
@@ -94,9 +93,7 @@ class RealEstateActivity : ComponentActivity() {
 
     private fun setupContent(searchViewModel: SearchViewModel) {
         setContent {
-//            RealEstateManagerTheme {
                 MainScreen(viewModel, searchViewModel)
-//            }
         }
     }
 }
@@ -128,10 +125,10 @@ fun MainScreen(viewModel: RealEstateViewModel, searchViewModel: SearchViewModel)
             ) {
 
                 val realEstatesToShow = if (!searchViewModel.searchPerformed.value) {
-                    // Si aucune recherche n'a été effectuée, affichez tous les biens
+                    // If no search use normal list
                     viewModel.realEstates.observeAsState(emptyList()).value
                 } else {
-                    // Sinon, utilisez les résultats de la recherche (même s'ils sont vides)
+                    // else use search list
                     searchResults
                 }
                 RealEstateListScreen(realEstates = realEstatesToShow)

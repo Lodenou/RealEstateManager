@@ -144,15 +144,14 @@ fun RealEstateDetailScreen(realEstateId: String, viewModel: DetailViewModel, onB
 }
 fun loadImagesForRealEstate(realEstate: RealEstate, detailViewModel: DetailViewModel) {
     detailViewModel.imagesWithDescriptionsDetail.clear()
-    // Supposer que realEstate a une liste d'images ou d'URLs d'images
-    val images = realEstate.images // C'est un exemple, adaptez-le à votre modèle de données
 
-    // Convertissez chaque URL en un objet ImageWithDescription et ajoutez-le à imagesWithDescriptionsDetail
+    val images = realEstate.images
+
     images?.forEach { imageUrl ->
         val imageWithDescription = ImageWithDescription(
             imageUri = imageUrl.imageUri,
             description = imageUrl.description
-        ) // Adaptez la création de l'objet selon vos besoins
+        )
         detailViewModel.imagesWithDescriptionsDetail.add(imageWithDescription)
     }
 }

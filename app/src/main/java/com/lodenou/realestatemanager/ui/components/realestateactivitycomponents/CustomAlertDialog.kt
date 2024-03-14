@@ -80,7 +80,7 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
             Column(
                 modifier = Modifier
                     .verticalScroll(scrollState)
-                    .padding(6.dp) // Ajoutez du padding selon vos préférences
+                    .padding(6.dp)
             ) {
 
 
@@ -170,7 +170,7 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
                     value = saleDate,
                     onValueChange = { newDate ->
                         saleDate =
-                            newDate // Mise à jour de saleDate avec la nouvelle date ou null pour réinitialiser
+                            newDate
                     },
                     label = "Date de vente",
                     defaultText = "Pas encore vendu"
@@ -231,8 +231,6 @@ fun CustomAlertDialog(onDismiss: () -> Unit, realEstateViewModel: RealEstateView
         },
         dismissButton = {
             Button(onClick = {
-                // clear image
-//                realEstateViewModel.imagesWithDescriptions.clear()
                 onDismiss()
             }) {
                 Text("Annuler", color = Color.Black)

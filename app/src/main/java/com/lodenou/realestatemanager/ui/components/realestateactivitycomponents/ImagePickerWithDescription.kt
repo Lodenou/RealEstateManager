@@ -51,12 +51,12 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
     var imageDescription by remember { mutableStateOf("") }
     var showSourceDialog by remember { mutableStateOf(false) }
 
-    // Création d'une Uri pour stocker l'image prise par la caméra
+
     val photoUri = remember {
         mutableStateOf<Uri?>(null)
     }
 
-    // Préparer le launcher pour prendre une photo
+
     val takePictureLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
@@ -67,7 +67,7 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
             }
         }
 
-    // Préparer le launcher pour sélectionner une image
+
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
                 Log.d("ImagePicker", "URI Received: $uri")
@@ -85,11 +85,11 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
             }
         }
 
-    // Demander la permission d'accès à la caméra
+
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                // Créer une Uri temporaire pour l'image
+
                 photoUri.value = FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.provider",
@@ -101,7 +101,7 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
             }
         }
 
-    // Sélectionner la source de l'image
+
     fun showImageSourceDialog() {
         showSourceDialog = true
     }
@@ -137,7 +137,7 @@ fun ImagePickerWithDescription(viewModel: RealEstateViewModel) {
         onClick = { showImageSourceDialog() }
     )
 
-    // Dialog pour entrer la description de l'image
+
     if (showDescriptionDialog) {
         DescriptionDialog(imageUri, imageDescription) { desc ->
             imageDescription = desc
@@ -192,7 +192,6 @@ fun DescriptionDialog(
 
 @Composable
 fun DisplaySelectedImages(viewModel: RealEstateViewModel) {
-    val context = LocalContext.current
     Column {
         viewModel.imagesWithDescriptions.forEach { imageWithDescription ->
 

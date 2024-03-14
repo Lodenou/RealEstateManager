@@ -23,16 +23,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.lodenou.realestatemanager.data.model.ImageWithDescription
 import com.lodenou.realestatemanager.data.model.RealEstate
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CheckboxWithLabel
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomDatePicker
 import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.CustomDropdownMenu
-import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.ImagePickerWithDescription
-import com.lodenou.realestatemanager.ui.components.realestateactivitycomponents.PointsOfInterestDropdownMenu
 import com.lodenou.realestatemanager.ui.viewmodel.DetailViewModel
 import java.time.LocalDate
-import java.util.UUID
 
 @Composable
 fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detailViewModel: DetailViewModel) {
@@ -80,7 +76,7 @@ fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detai
             Column(
                 modifier = Modifier
                     .verticalScroll(scrollState)
-                    .padding(6.dp) // Ajoutez du padding selon vos préférences
+                    .padding(6.dp)
             ) {
 
 
@@ -170,7 +166,7 @@ fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detai
                     value = saleDate,
                     onValueChange = { newDate ->
                         saleDate =
-                            newDate // Mise à jour de saleDate avec la nouvelle date ou null pour réinitialiser
+                            newDate
                     },
                     label = "Date de vente",
                     defaultText = "Pas encore vendu"
@@ -212,7 +208,6 @@ fun CustomAlertDialogDetail(onDismiss: () -> Unit, realEstate: RealEstate, detai
 
 
                     // Save Object to room
-//                    detailViewModel.insert(realEstateUpdated)
                     detailViewModel.update(realEstateUpdated)
 
                     onDismiss()

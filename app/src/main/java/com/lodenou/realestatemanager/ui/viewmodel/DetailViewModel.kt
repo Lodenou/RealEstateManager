@@ -47,21 +47,20 @@ class DetailViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { geocodeResult ->
-                    // Vérifiez si les résultats sont non vides, sinon retournez null de manière sûre
+
                     geocodeResult.results.firstOrNull()?.geometry?.location ?: Location(35.4, 25.0)
                 }
                 .subscribe({ location ->
-                    // Ici, location peut être null si aucun résultat n'est trouvé ou si une erreur se produit
                     _location.value = location
                 }, { error ->
                     Log.e("DetailViewModel", "Error fetching location", error)
-                    _location.value = null // Assurez-vous de gérer l'erreur en mettant à jour _location avec null si nécessaire
+                    _location.value = null
                 })
         )
     }
     override fun onCleared() {
         super.onCleared()
-        compositeDisposable.clear() // Clean sub when vm is destroyed
+        compositeDisposable.clear() // Clean composite when vm is destroyed
     }
 
     // update realestate

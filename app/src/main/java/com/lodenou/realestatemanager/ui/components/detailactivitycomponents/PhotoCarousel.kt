@@ -37,7 +37,6 @@ fun PhotoCarousel(images: List<ImageWithDescription>?) {
             if (images != null) {
                 items(images.size) { index ->
                     val image = images[index]
-                    // Choisissez l'URI à utiliser: cloudUri si disponible et internet est disponible, sinon localUri
                     val imageUri = image.imageUri
 
 
@@ -56,7 +55,7 @@ fun PhotoCarousel(images: List<ImageWithDescription>?) {
                                     .fillMaxWidth(),
                                 contentScale = ContentScale.Crop
                             )
-                            // Bandeau de description avec transparence
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
