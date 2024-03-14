@@ -98,7 +98,7 @@ fun SearchCriteriaDialog(onDismiss: () -> Unit, searchViewModel : SearchViewMode
 
 @Composable
 fun SearchCriteriaForm( searchViewModel: SearchViewModel,  onDismiss: () -> Unit) {
-    // Scroll state pour la colonne scrollable
+    // Scroll state
     val scrollState = rememberScrollState()
 
     Column(modifier = Modifier

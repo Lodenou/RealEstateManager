@@ -57,7 +57,7 @@ fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
         mutableStateOf<Uri?>(null)
     }
 
-    // Préparer le launcher pour prendre une photo
+    // prepare to launch photo
     val takePictureLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
@@ -68,7 +68,7 @@ fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
             }
         }
 
-    // Préparer le launcher pour sélectionner une image
+    // prepare launcher select image
     val pickImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
@@ -87,11 +87,11 @@ fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
             }
         }
 
-    // Demander la permission d'accès à la caméra
+    // Ask camera access
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                // Créer une Uri temporaire pour l'image
+                // create temp uri for image
                 photoUri.value = FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.provider",
@@ -103,7 +103,7 @@ fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
             }
         }
 
-    // Sélectionner la source de l'image
+    // select image source
     fun showImageSourceDialog() {
         showSourceDialog = true
     }
@@ -139,7 +139,7 @@ fun ImagePickerWithDescriptionDetail(viewModel: DetailViewModel) {
         onClick = { showImageSourceDialog() }
     )
 
-    // Dialog pour entrer la description de l'image
+    // dialog to enter image description
     if (showDescriptionDialog) {
         DescriptionDialog(imageUri, imageDescription) { desc ->
             imageDescription = desc
@@ -194,7 +194,6 @@ fun DescriptionDialog(
 
 @Composable
 fun DisplaySelectedImages(viewModel: DetailViewModel) {
-    val context = LocalContext.current
     Column {
         viewModel.imagesWithDescriptionsDetail.forEach { imageWithDescription ->
 

@@ -64,20 +64,15 @@ fun RealEstateItem(realEstate: RealEstate) {
         ) {
 
             if (realEstate.images?.isNotEmpty() == true) {
-                // Sélectionnez l'URI appropriée en fonction de la disponibilité d'Internet
                 val imageUrl = realEstate.images.first().imageUri
-
-
-                //TODO FIND WAY TO GET PERMISSION FOR IMAGE STORAGE
-//                val imageUri = copyImageToAppStorageFromUriString(imageUrl, context)
                 // Displaying the image with Coil
                 Image(
                     painter = rememberImagePainter(
                         data = imageUrl,
                         builder = {
                             crossfade(true)
-                            error(R.drawable.ic_launcher_foreground) // Utilisez votre image d'erreur
-                            placeholder(R.drawable.ic_launcher_background) // Utilisez votre image de chargement
+                            error(R.drawable.ic_launcher_foreground) // error image
+                            placeholder(R.drawable.ic_launcher_background) // loading image
                             listener(onError = { request, throwable ->
                                 Log.e("ImageLoadError", "Failed to load image", throwable)
                             })
@@ -109,25 +104,3 @@ fun RealEstateItem(realEstate: RealEstate) {
 }
 
 
-fun copyImageToAppStorage(imageUri: Uri, context: Context): Uri? {
-
-    val inputStream = context.contentResolver.openInputStream(imageUri) ?: return null
-    val newFile = File(context.filesDir, "images/${System.currentTimeMillis()}.jpg").apply {
-        parentFile?.mkdirs() // Assurez-vous que le dossier existe
-    }
-    val outputStream = FileOutputStream(newFile)
-
-    inputStream.use { input ->
-        outputStream.use { output ->
-            input.copyTo(output)
-        }
-    }
-
-    return Uri.fromFile(newFile)
-}
-
-fun copyImageToAppStorageFromUriString(imageUriString: String, context: Context): Uri? {
-    // Convertir la chaîne en Uri
-    val imageUri = Uri.parse(imageUriString)
-    return copyImageToAppStorage(imageUri, context)
-}

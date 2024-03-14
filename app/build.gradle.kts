@@ -113,7 +113,7 @@ dependencies {
     testImplementation ("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation ("org.junit.jupiter:junit-jupiter-api:5.7.0")
     testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.7.0")
-    testImplementation ("org.mockito:mockito-inline:3.4.0")
+    testImplementation ("org.mockito:mockito-inline:4.2.0")
     testImplementation ("org.mockito:mockito-junit-jupiter:3.4.0")
 
     // Coroutines Test
@@ -153,6 +153,7 @@ dependencies {
     // For instrumentation tests
     androidTestImplementation  ("com.google.dagger:hilt-android-testing:2.50")
     kaptAndroidTest ("com.google.dagger:hilt-compiler:2.50")
+    androidTestImplementation ("org.mockito:mockito-android:5.10.0")
 
     // For local unit tests
     testImplementation ("com.google.dagger:hilt-android-testing:2.50")

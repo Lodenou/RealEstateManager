@@ -97,7 +97,7 @@ fun Info(realEstate: RealEstate){
         style = TextStyle(fontWeight = FontWeight.Bold)
     )
     Spacer(modifier = Modifier.height(5.dp))
-    // Affiche les points d'intérêt
+
     if (pointsOfInterestText.isNotEmpty()) {
         Text(
             text = "Points d'intérêts : $pointsOfInterestText",
